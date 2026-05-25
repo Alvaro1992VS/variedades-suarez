@@ -24,7 +24,7 @@ try:
 except:
     pass
 
-# Flujo visual del proceso
+# Plujo visual del proceso
 st.write("### **🛍️ Elige tus productos** ➔ **🛒 Revisa el carrito** ➔ **📝 Envía tu pedido**")
 
 # Tarjeta informativa de entrega
@@ -147,7 +147,12 @@ else:
         st.error("❌ Cupón inválido o vencido.")
         
     total_final = total_carrito - descuento
-    st.write(f"### 💰 Total a pagar: ${total_final:.2f}")
+    
+    # 🧾 RECIBO DE COMPRA EN PANTALLA PARA EL CLIENTE
+    st.write("### 🧾 Resumen de Cuenta (Tu Recibo)")
+    st.write(f"Subtotal de productos: ${total_carrito:.2f}")
+    st.write(f"Descuento aplicado: -${descuento:.2f}")
+    st.markdown(f"### **Total Neto a Pagar: ${total_final:.2f}**")
     st.write("---")
     
     # Casilla para activar la entrega
@@ -187,31 +192,21 @@ else:
             
             # Número de teléfono de destino
             mi_numero = "5351233908"
-            
-            # Codificación del texto para los enlaces URL
             texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
-            
             enlace_wa = f"https://wa.me/{mi_numero}?text={texto_url}"
-            enlace_sms = f"sms:{mi_numero}?body={texto_url}"
             
             st.write("---")
-            st.write("### 👇 Selecciona por dónde deseas enviar tu pedido:")
-            
-            # Botones de envío limpios en dos columnas profesionales
-            col_wa, col_sms = st.columns(2)
-            with col_wa:
-                st.link_button("🟢 ENVIAR POR WHATSAPP", enlace_wa, use_container_width=True)
-            with col_sms:
-                st.link_button("💬 ENVIAR POR SMS (MENSAJE)", enlace_sms, use_container_width=True)
+            # Único botón grande para mandar a WhatsApp
+            st.link_button("🟢 ENVIAR PEDIDO COMPLETO POR WHATSAPP", enlace_wa, use_container_width=True)
                 
         else:
-            st.caption("Por favor, rellena tu nombre, dirección y CI para activar los botones de envío.")
+            st.caption("Por favor, rellena tu nombre, dirección y CI para activar el botón de envío.")
 
 # --- MÉTODOS DE PAGO DISPONIBLES (SOLO EFECTIVO) ---
 st.write("---")
 st.success("💰 **Método de pago aceptado:** Únicamente pago en efectivo al recibir los productos en casa.")
 
-# Sección de contacto rápido limpia y corregida sin duplicados
+# Sección de contacto rápido abajo del todo
 st.write("### 📞 ¿Tienes dudas o necesitas ayuda?")
 col_tel, col_chat = st.columns(2)
 

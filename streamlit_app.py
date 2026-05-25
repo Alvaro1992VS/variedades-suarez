@@ -197,7 +197,7 @@ else:
 
 # --- NUEVO: MÉTODOS DE PAGO DISPONIBLES ---
 st.write("---")
-st.success("💳 **Métodos de pago aceptados:** Efectivo al recibir en casa o Transferencia electrónica (Transfermóvil / Enzona).")
+st.success("💳 **Métodos de pago aceptados:** Efectivo al recibir en casa
 
 # SECCIÓN DE CONTACTO RÁPIDO ABAJO DEL TODO
 st.write("### 📞 ¿Tienes dudas o necesitas ayuda?")

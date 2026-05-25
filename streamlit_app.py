@@ -1,17 +1,36 @@
+
 import streamlit as st
 
 st.set_page_config(page_title="Variedades Suárez", page_icon="🧺")
 
-# --- INTERFAZ: COLOR DE FONDO Y CATEGORÍAS HORIZONTALES ---
+# --- INTERFAZ: COMPATIBILIDAD TOTAL CON MODO CLARO Y OSCURO ---
 st.markdown("""
     <style>
+    /* Forzar fondo agradable y textos legibles en cualquier modo */
     .stApp {
-        background-color: #f4f6f9;
+        background-color: var(--background-color, #f4f6f9);
     }
+    
+    /* Asegurar que los títulos, subtítulos y textos principales sean siempre legibles */
+    h1, h2, h3, h4, h5, h6, p, span, label {
+        color: var(--text-color, #111111) !important;
+    }
+    
+    /* Pestañas de categorías adaptables */
     .stTabs [data-baseweb="tab"] p {
         font-size: 18px !important;    
         font-weight: bold !important;  
-        color: #111111 !important;    
+        color: var(--text-color, #111111) !important;    
+    }
+    
+    /* Forzar que los textos descriptivos dentro de las columnas se vean claros u oscuros según el tema */
+    .stMarkdown div p {
+        color: var(--text-color, #111111) !important;
+    }
+    
+    /* Color fijo para los textos de ayuda o capturas secundarias */
+    .stCaption {
+        color: #555555 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -148,17 +167,16 @@ else:
         
     total_final = total_carrito - descuento
     
-    # 🧾 NUEVO: RECIBO DE COMPRA ESTILO TICKET EN PANTALLA
+    # 🧾 RESUMEN DE CUENTA ESTILO TICKET EN PANTALLA
     st.write("### 🧾 Resumen de Cuenta (Tu Recibo)")
     
-    # Estructura limpia y con diseño de lista tipo WhatsApp
     st.markdown("#### **📦 Productos seleccionados:**")
     for item, cant in encargo.items():
         subtotal_item = cant * productos[item]["precio"]
-        st.text(f"- {cant}x {item} (${subtotal_item:.2f})")
+        st.write(f"- {cant}x {item} (${subtotal_item:.2f})")
         
     if descuento > 0:
-        st.text(f"🎟️ Cupón Aplicado: SUAREZ10 (-${descuento:.2f})")
+        st.write(f"🎟️ Cupón Aplicado: SUAREZ10 (-${descuento:.2f})")
         
     st.write(f"**Subtotal bruto:** ${total_carrito:.2f}")
     st.markdown(f"### **Total Neto a Pagar: ${total_final:.2f}**")

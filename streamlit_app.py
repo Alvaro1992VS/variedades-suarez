@@ -3,6 +3,13 @@ import streamlit as st
 st.set_page_config(page_title="Variedades Suárez")
 
 st.title("Variedades Suárez")
+
+# Esto muestra la foto de la cesta arriba del todo antes de los productos
+try:
+    st.image("Cesta.jpg", use_container_width=True)
+except:
+    pass
+
 st.subheader("Haz tu encargo de productos y yo se los llevo a mi pueblo")
 
 # Lista de tus productos con precio, foto y ahora con DETALLES

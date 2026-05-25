@@ -12,14 +12,9 @@ st.markdown("""
     
     /* Esto hace las letras de las categorías más grandes, oscuras y en negrita */
     .stTabs [data-baseweb="tab"] p {
-        font-size: 18px !important;    /* Tamaño de la letra */
-        font-weight: bold !important;  /* Pone la letra en Negrita */
-        color: #111111 !important;    /* Color negro bien oscuro */
-    }
-    
-    /* Cambia el color de la línea debajo de la categoría seleccionada */
-    .stTabs [data-baseweb="tab-highlight-line"] {
-        background-color: #25D366 !important; /* Línea verde WhatsApp */
+        font-size: 18px !important;    
+        font-weight: bold !important;  
+        color: #111111 !important;    
     }
     </style>
     """, unsafe_allow_html=True)
@@ -131,8 +126,8 @@ nombre = st.text_input("Nombre:")
 direccion = st.text_input("Dirección:")
 ci = st.text_input("Carnet de Identidad (CI):")
 
-# --- BOTÓN DE ENVIAR ENCARGO ---
-if st.button("Enviar encargo por WhatsApp"):
+# --- BOTÓN DE ENVIAR ENCARGO (NATIVO Y SEGURO) ---
+if st.button("🟢 ENVIAR PEDIDO POR WHATSAPP"):
     if nombre and direccion and ci and encargo:
         texto = f"Hola, soy {nombre}.\nMi dirección es: {direccion}\nMi CI es: {ci}\n\nEste es mi encargo:\n"
         total = 0
@@ -143,3 +138,13 @@ if st.button("Enviar encargo por WhatsApp"):
         texto += f"\n*Total a pagar: ${total}*"
         
         mi_numero = "5351233908"
+        
+        texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
+        enlace = f"https://wa.me/{mi_numero}?text={texto_url}"
+        
+        # En vez de un botón falso con HTML, usamos un enlace en forma de link directo seguro
+        st.success("¡Pedido procesado con éxito!")
+        st.link_button("👉 PRESIONA AQUÍ PARA CONFIRMAR EN WHATSAPP", enlace)
+        
+    else:
+        st.error("Por favor, llena tus datos y selecciona al menos 1 producto usando los botones de más (+).")

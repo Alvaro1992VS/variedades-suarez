@@ -3,6 +3,13 @@ import streamlit as st
 st.set_page_config(page_title="Variedades Suárez")
 
 st.title("Variedades Suárez")
+
+# Esto muestra la foto de la cesta arriba del todo antes de los productos
+try:
+    st.image("Arroz.jpg", use_container_width=True)
+except:
+    pass
+
 st.subheader("Haz tu encargo de productos y yo se los llevo a mi pueblo")
 
 # Lista de tus productos con precio, foto y ahora con DETALLES
@@ -82,7 +89,7 @@ if st.button("Enviar encargo por WhatsApp"):
         texto += f"\n*Total a pagar: ${total}*"
         
         # ⚠️ PON AQUÍ TU NÚMERO DE TELÉFONO REAL
-        mi_numero = "521234567890"
+        mi_numero = "5351233908"
         
         # Codificar los espacios y saltos de línea para WhatsApp
         texto_url = texto.replace(" ", "%20").replace("\n", "%0A")

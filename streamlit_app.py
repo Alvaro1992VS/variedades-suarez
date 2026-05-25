@@ -12,7 +12,7 @@ st.markdown("---")
 # Lista de productos (Puedes ampliarla hasta 20 aquí mismo)
 if 'productos' not in st.session_state:
     st.session_state.productos = [
-        {"nombre": "Arroz (lb)", "precio": 150},
+        {"nombre": "Arroz (lb)", "precio": 150,"foto":},
         {"nombre": "Frijoles (lb)", "precio": 200},
         {"nombre": "Aceite (lt)", "precio": 500},
         {"nombre": "Pan (unidad)", "precio": 50},

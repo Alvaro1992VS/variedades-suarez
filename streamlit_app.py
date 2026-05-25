@@ -10,7 +10,7 @@ try:
 except:
     pass
 
-st.subheader("Haz tu encargo de productos y yo se los llevo a mi pueblo")
+st.subheader("Haz tu encargo de productos y yo se lo llevo hasta su casa")
 
 # Lista de tus productos con precio, foto y ahora con DETALLES
 productos = {

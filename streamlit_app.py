@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="Variedades Suárez")
 
 st.title("Variedades Suárez")
-st.subheader("Haz tu encargo de productos y yo se los llevo hasta la pierta de tu casa")
+st.subheader("Haz tu encargo de productos y yo se lo llevo hasta la puerta de tu casa")
 
 # Lista de tus productos actuales con sus precios y nombres de fotos
 productos = {

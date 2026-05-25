@@ -108,7 +108,7 @@ def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
             
             cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"cant_{prod}_{nombre_pestana}")
             if cantidad > 0:
-                encargo[prod] = cantidad
+                encargo[prod] = quantity = cantidad
         st.divider()
 
 with tab_todo:
@@ -135,12 +135,11 @@ else:
         total_carrito += subtotal
         st.write(f"🔹 **{cant}x** {item} — ${subtotal}")
     
-    # --- NUEVO: SISTEMA DE CUPÓN DE DESCUENTO ---
+    # Sistema de Cupón de Descuento
     st.write("---")
     cupon = st.text_input("🎟️ ¿Tienes un cupón de descuento? Escríbelo aquí:").strip()
     descuento = 0
     
-    # Si escribe el cupón secreto SUAREZ10 se le descuenta un 10%
     if cupon == "SUAREZ10":
         descuento = total_carrito * 0.10
         st.success(f"🎉 ¡Cupón aplicado con éxito! Descuento del 10%: -${descuento:.2f}")
@@ -160,17 +159,17 @@ else:
         direccion = st.text_input("Dirección de entrega:")
         ci = st.text_input("Carnet de Identidad (CI):")
         
-        # --- NUEVO: SELECTOR DE HORARIO DE ENTREGA ---
+        # Selector de Horario de Entrega
         horario = st.selectbox(
             "🕒 ¿En qué horario prefieres recibir tu pedido?",
             ["Por la Mañana (9:00 AM - 12:00 PM)", "Por la Tarde (2:00 PM - 6:00 PM)"]
         )
         
-        # --- NUEVO: NOTAS ESPECIALES PARA EL REPARTO ---
+        # Notas Especiales para el Reparto
         notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, si no estoy dejar con mi vecina, etc.")
         
         if nombre and direccion and ci:
-            # Construcción del texto del pedido adaptado con los nuevos datos
+            # Construcción del texto del pedido
             texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario de entrega:* {horario}\n"
             
             if notas:
@@ -195,11 +194,11 @@ else:
         else:
             st.caption("Por favor, rellena tu nombre, dirección y CI para activar el botón de envío.")
 
-# --- NUEVO: MÉTODOS DE PAGO DISPONIBLES ---
+# --- MÉTODOS DE PAGO DISPONIBLES (SOLO EFECTIVO) ---
 st.write("---")
-st.success("💳 **Métodos de pago aceptados:** Efectivo al recibir en casa
+st.success("💰 **Método de pago aceptado:** Únicamente pago en efectivo al recibir los productos en casa.")
 
-# SECCIÓN DE CONTACTO RÁPIDO ABAJO DEL TODO
+# Sección de contacto rápido abajo del todo
 st.write("### 📞 ¿Tienes dudas o necesitas ayuda?")
 col_tel, col_chat = st.columns(2)
 

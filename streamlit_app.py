@@ -2,13 +2,12 @@ import streamlit as st
 
 st.set_page_config(page_title="Variedades Suárez", page_icon="🧺")
 
-# --- INTERFAZ: COLOR DE FONDO Y CATEGORÍAS HORIZONTALES MÁS GRANDES ---
+# --- INTERFAZ: COLOR DE FONDO Y CATEGORÍAS HORIZONTALES ---
 st.markdown("""
     <style>
     .stApp {
         background-color: #f4f6f9;
     }
-    /* Estilo para las pestañas horizontales */
     .stTabs [data-baseweb="tab"] p {
         font-size: 18px !important;    
         font-weight: bold !important;  
@@ -25,15 +24,15 @@ try:
 except:
     pass
 
-# --- NUEVO: FLUJO VISUAL DEL PROCESO ---
+# Flujo visual del proceso
 st.write("### **🛍️ Elige tus productos** ➔ **🛒 Revisa el carrito** ➔ **📝 Envía por WhatsApp**")
 
-# --- NUEVO: TARJETAS INFORMATIVAS CON COLOR ---
+# Tarjeta informativa de entrega
 st.info("🚚 **Información de Entrega:** Llevamos tu encargo directo hasta la puerta de tu casa en el pueblo de forma rápida y segura.")
 
 st.subheader("Haz tu encargo de productos y yo se lo llevo hasta su casa")
 
-# --- LISTA DE PRODUCTOS MEJORADA CON ETIQUETAS LLAMATIVAS ---
+# --- LISTA DE PRODUCTOS ---
 productos = {
     "Arroz (Lb)": {
         "precio": 120, 
@@ -72,26 +71,24 @@ productos = {
     }
 }
 
-# Aquí guardaremos lo que elija el cliente en la pantalla actual
+# Aquí guardaremos lo que elija el cliente
 encargo = {}
 
 st.write("---")
 st.write("### 🛍️ Productos Disponibles")
 
-# --- INTERFAZ: BUSCADOR (LUPA) ---
+# Buscador (Lupa)
 buscar = st.text_input("🔍 Buscar producto por su nombre...", value="")
 
-# --- INTERFAZ: CATEGORÍAS HORIZONTALES (PESTAÑAS) ---
+# Categorías Horizontales (Pestañas)
 tab_todo, tab_granos, tab_bebidas, tab_pastas, tab_otros = st.tabs([
     "✨ Todo", "🌾 Granos", "🥤 Bebidas", "🍝 Pastas", "📦 Otros"
 ])
 
-# Función interna corregida
 def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
     for prod, info in productos.items():
         if buscar and buscar.lower() not in prod.lower():
             continue
-            
         if categoria_filtro and info["categoria"] != categoria_filtro:
             continue
             
@@ -103,10 +100,8 @@ def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
                 st.caption("📸 (Sin foto)")
                 
         with col2:
-            # Muestra la etiqueta de color si tiene una asignada
             if info["etiqueta"]:
                 st.warning(info["etiqueta"])
-                
             st.write(f"**{prod}**")
             st.write(f"Precio: ${info['precio']}")
             st.caption(info["detalle"]) 
@@ -114,22 +109,16 @@ def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
             cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"cant_{prod}_{nombre_pestana}")
             if cantidad > 0:
                 encargo[prod] = cantidad
-                
         st.divider()
 
-# Colocar los productos correctos en sus pestañas
 with tab_todo:
     mostrar_productos(categoria_filtro=None, nombre_pestana="todo")
-
 with tab_granos:
     mostrar_productos(categoria_filtro="Granos", nombre_pestana="granos")
-
 with tab_bebidas:
     mostrar_productos(categoria_filtro="Bebidas", nombre_pestana="bebidas")
-
 with tab_pastas:
     mostrar_productos(categoria_filtro="Pastas", nombre_pestana="pastas")
-
 with tab_otros:
     mostrar_productos(categoria_filtro="Otros", nombre_pestana="otros")
 
@@ -146,10 +135,23 @@ else:
         total_carrito += subtotal
         st.write(f"🔹 **{cant}x** {item} — ${subtotal}")
     
-    st.write(f"### 💰 Total acumulado: ${total_carrito}")
+    # --- NUEVO: SISTEMA DE CUPÓN DE DESCUENTO ---
+    st.write("---")
+    cupon = st.text_input("🎟️ ¿Tienes un cupón de descuento? Escríbelo aquí:").strip()
+    descuento = 0
+    
+    # Si escribe el cupón secreto SUAREZ10 se le descuenta un 10%
+    if cupon == "SUAREZ10":
+        descuento = total_carrito * 0.10
+        st.success(f"🎉 ¡Cupón aplicado con éxito! Descuento del 10%: -${descuento:.2f}")
+    elif cupon != "":
+        st.error("❌ Cupón inválido o vencido.")
+        
+    total_final = total_carrito - descuento
+    st.write(f"### 💰 Total a pagar: ${total_final:.2f}")
     st.write("---")
     
-    # Casilla para activar los datos de entrega
+    # Casilla para activar la entrega
     confirmar = st.checkbox("⚙️ Presiona aquí para continuar con la compra y poner tus datos")
     
     if confirmar:
@@ -158,13 +160,31 @@ else:
         direccion = st.text_input("Dirección de entrega:")
         ci = st.text_input("Carnet de Identidad (CI):")
         
+        # --- NUEVO: SELECTOR DE HORARIO DE ENTREGA ---
+        horario = st.selectbox(
+            "🕒 ¿En qué horario prefieres recibir tu pedido?",
+            ["Por la Mañana (9:00 AM - 12:00 PM)", "Por la Tarde (2:00 PM - 6:00 PM)"]
+        )
+        
+        # --- NUEVO: NOTAS ESPECIALES PARA EL REPARTO ---
+        notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, si no estoy dejar con mi vecina, etc.")
+        
         if nombre and direccion and ci:
-            # Creamos el texto del pedido
-            texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n\n📦 *Productos:* \n"
+            # Construcción del texto del pedido adaptado con los nuevos datos
+            texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario de entrega:* {horario}\n"
+            
+            if notas:
+                texto += f"📝 *Notas:* {notas}\n"
+                
+            texto += "\n📦 *Productos:* \n"
             for item, cant in encargo.items():
                 subtotal = cant * productos[item]["precio"]
                 texto += f"- {cant}x {item} (${subtotal})\n"
-            texto += f"\n*Total a pagar: ${total_carrito}*"
+                
+            if descuento > 0:
+                texto += f"\n🎟️ *Cupón Aplicado:* SUAREZ10 (-${descuento:.2f})"
+                
+            texto += f"\n\n*Total neto a pagar: ${total_final:.2f}*"
             
             mi_numero = "5351233908"
             texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
@@ -175,8 +195,11 @@ else:
         else:
             st.caption("Por favor, rellena tu nombre, dirección y CI para activar el botón de envío.")
 
-# --- NUEVO: SECCIÓN DE CONTACTO RÁPIDO ABAJO DEL TODO ---
+# --- NUEVO: MÉTODOS DE PAGO DISPONIBLES ---
 st.write("---")
+st.success("💳 **Métodos de pago aceptados:** Efectivo al recibir en casa o Transferencia electrónica (Transfermóvil / Enzona).")
+
+# SECCIÓN DE CONTACTO RÁPIDO ABAJO DEL TODO
 st.write("### 📞 ¿Tienes dudas o necesitas ayuda?")
 col_tel, col_chat = st.columns(2)
 

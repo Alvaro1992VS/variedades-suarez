@@ -1,104 +1,80 @@
 import streamlit as st
-import urllib.parse
 
-# Configuración de la página (Título y diseño)
-st.set_page_config(page_title="Variedades Suárez", page_icon="🛍️", layout="centered")
+# 1. ESTO QUITA LOS MENÚS EXTRAÑOS Y DEJA LA WEB LIMPIA PARA LOS CLIENTES
+st.set_page_config(page_title="Variedades Suárez", page_icon="🛒", layout="centered")
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
 
-# Título principal
-st.title("🛍️ VARIEDADES SUÁREZ")
-st.subheader("Haz tu pedido de forma fácil y recíbelo en casa")
-st.markdown("---")
+st.title("🛒 Variedades Suárez")
+st.write("Haz tu encargo fácilmente y recíbelo en la puerta de tu casa.")
 
-# Lista de productos (Puedes ampliarla hasta 20 aquí mismo)
-if 'productos' not in st.session_state:
-    st.session_state.productos = [
-        {"nombre": "Arroz (lb)", "precio": 150,"foto":Arroz.jpg},
-        {"nombre": "Frijoles (lb)", "precio": 200},
-        {"nombre": "Aceite (lt)", "precio": 500},
-        {"nombre": "Pan (unidad)", "precio": 50},
-        {"nombre": "Azúcar (lb)", "precio": 120},
-    ]
+# 2. AQUÍ CONTROLAS TUS PRODUCTOS (Nombre, Precio, y el nombre de la foto que subiste)
+productos = {
+    "Arroz (1 Libra)": {"precio": 120, "foto": "arroz.jpg"},
+    "Aceite de Cocina (1L)": {"precio": 850, "foto": "aceite.webp"},
+    "Jabón de Baño": {"precio": 90, "foto": "jabon.png"},
+    # ¡Aquí puedes seguir agregando los 20 productos hacia abajo siguiendo el mismo formato!
+}
 
-# Inicializar el carrito en la sesión si no existe
+# Carrito de compras en la sesión
 if 'carrito' not in st.session_state:
-    st.session_state.carrito = {p["nombre"]: 0 for p in st.session_state.productos}
+    st.session_state.carrito = {}
 
-# --- SECCIÓN DE PRODUCTOS ---
-st.header("📋 Menú de Productos")
+# Mostrar productos en pantalla
+st.subheader("🛍️ Nuestros Productos disponibles")
 
-for p in st.session_state.productos:
-    nombre = p["nombre"]
-    precio = p["precio"]
-    
-    # Creamos 3 columnas: Nombre/Precio, Botón Menos, Botón Más
-    col1, col2, col3 = st.columns([2, 1, 1])
+for prod, info in productos.items():
+    col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.write(f"**{nombre}**")
-        st.write(f"${precio} * Cantidad: {st.session_state.carrito[nombre]}*")
-    
-    with col2:
-        if st.button(f"➖", key=f"restar_{nombre}"):
-            if st.session_state.carrito[nombre] > 0:
-                st.session_state.carrito[nombre] -= 1
-                st.rerun()
-                
-    with col3:
-        if st.button(f"➕", key=f"sumar_{nombre}"):
-            st.session_state.carrito[nombre] += 1
-            st.rerun()
+        # Intenta cargar la foto desde GitHub, si no la encuentra no rompe la página
+        try:
+            st.image(info["foto"], width=120)
+        except:
+            st.caption("📸 (Sin foto)")
             
-    st.markdown("---")
+    with col2:
+        st.write(f"**{prod}**")
+        st.write(f"Precio: ${info['precio']} C选题") # Cambia aquí a tu moneda local si no es pesos
+        
+        # Botón para añadir
+        if st.button(f"Añadir", key=prod):
+            st.session_state.carrito[prod] = st.session_state.carrito.get(prod, 0) + 1
+            st.success(f"Agregado: {prod}")
 
-# --- SECCIÓN DE DATOS DE ENVÍO ---
-st.header("📍 Datos de Entrega")
-nombre_cliente = st.text_input("Nombre Completo:")
-ci_cliente = st.text_input("Carné de Identidad (CI):")
-direccion_cliente = st.text_input("Dirección de Entrega:")
-
-st.markdown("---")
-
-# --- LÓGICA DE ENVÍO POR WHATSAPP ---
-texto_productos = ""
-total = 0
-hay_productos = False
-
-# Calcular totales
-for p in st.session_state.productos:
-    cant = st.session_state.carrito[p["nombre"]]
-    if cant > 0:
-        subtotal = cant * p["precio"]
-        texto_productos += f"• {p['nombre']} x{cant}: ${subtotal}\n"
-        total += subtotal
-        hay_productos = True
+# Formulario de pedido obligatorio
+st.subheader("📝 Datos de Entrega")
+nombre = st.text_input("Nombre Completo:")
+direccion = st.text_input("Dirección de entrega:")
+ci = st.text_input("Carnet de Identidad (CI):")
 
 # Botón para enviar por WhatsApp
-if st.button("🚀 ENVIAR PEDIDO POR WHATSAPP", use_container_width=True):
-    if not nombre_cliente or not ci_cliente or not direccion_cliente:
-        st.error("⚠️ Por favor, completa todos los campos de entrega antes de enviar.")
-    elif not hay_productos:
-        st.error("⚠️ No has seleccionado ningún producto en tu carrito.")
+if st.button("🟢 ENVIAR PEDIDO POR WHATSAPP"):
+    if not nombre or not direccion or not ci:
+        st.error("⚠️ Por favor, rellena todos tus datos antes de enviar.")
+    elif not st.session_state.carrito:
+        st.error("⚠️ El carrito está vacío. Añade algún producto.")
     else:
-        # Formatear el mensaje para WhatsApp
-        mensaje_completo = (
-            f"🛍️ *VARIEDADES SUÁREZ - NUEVO PEDIDO*\n\n"
-            f"👤 *Cliente:* {nombre_cliente}\n"
-            f"🪪 *CI:* {ci_cliente}\n"
-            f"📍 *Dirección:* {direccion_cliente}\n\n"
-            f"📋 *Detalle del Pedido:*\n{texto_productos}\n"
-            f"💰 *TOTAL A PAGAR: ${total}*"
-        )
+        # Construir el mensaje de texto
+        texto_pedido = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n"
+        texto_pedido += f"👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n\n"
+        texto_pedido += "📦 *Productos:* \n"
         
-        # Codificar texto para la URL
-        mensaje_codificado = urllib.parse.quote(mensaje_completo)
-        enlace_wa = f"https://wa.me/5351233908?text={mensaje_codificado}"
+        total = 0
+        for item, cant in st.session_state.carrito.items():
+            subtotal = cant * productos[item]["precio"]
+            total += subtotal
+            texto_pedido += f"- {cant}x {item} (${subtotal})\n"
+            
+        texto_pedido += f"\n💰 *Total a pagar:* ${total}"
         
-        # En la web, mostramos un enlace directo estilizado
-        st.success("¡Pedido listo para enviar!")
-        st.markdown(
-            f'<a href="{enlace_wa}" target="_blank" style="text-decoration:none;">'
-            '<div style="background-color:#25D366;color:white;padding:12px;text-align:center;'
-            'font-weight:bold;border-radius:5px;font-size:18px;">'
-            '🟢 CONFIRMAR Y ABRIR WHATSAPP 🟢</div></a>', 
-            unsafe_allow_html=True
-        )
+        # Crear enlace de WhatsApp (Reemplaza el 521234567890 por TU número con código de país)
+        numero_telefono = "521234567890" 
+        enlace_ws = f"https://wa.me/{numero_telefono}?text={encodeURIComponent(texto_pedido)}"
+        
+        st.markdown(f'<a href="{enlace_ws}" target="_blank" style="text-decoration:none;"><button style="background-color:#25D366;color:white;padding:10px;border:none;border-radius:5px;width:100%;font-weight:bold;cursor:pointer;">👉 HACER CLIC AQUÍ PARA CONFIRMAR EN WHATSAPP</button></a>', unsafe_allow_html=True)

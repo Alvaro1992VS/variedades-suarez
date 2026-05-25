@@ -25,45 +25,57 @@ try:
 except:
     pass
 
+# --- NUEVO: FLUJO VISUAL DEL PROCESO ---
+st.write("### **🛍️ Elige tus productos** ➔ **🛒 Revisa el carrito** ➔ **📝 Envía por WhatsApp**")
+
+# --- NUEVO: TARJETAS INFORMATIVAS CON COLOR ---
+st.info("🚚 **Información de Entrega:** Llevamos tu encargo directo hasta la puerta de tu casa en el pueblo de forma rápida y segura.")
+
 st.subheader("Haz tu encargo de productos y yo se lo llevo hasta su casa")
 
-# --- LISTA DE PRODUCTOS CON CATEGORÍAS ---
+# --- LISTA DE PRODUCTOS MEJORADA CON ETIQUETAS LLAMATIVAS ---
 productos = {
     "Arroz (Lb)": {
         "precio": 120, 
         "foto": "Arroz.jpg", 
         "detalle": "Arroz blanco de grano entero de primera calidad.",
-        "categoria": "Granos"
+        "categoria": "Granos",
+        "etiqueta": "🔥 ¡LO MÁS VENDIDO!"
     },
     "Aceite de Cocina (1L)": {
         "precio": 850, 
         "foto": "Aceite.jpg", 
         "detalle": "Aceite vegetal ideal para freír y cocinar.",
-        "categoria": "Otros"
+        "categoria": "Otros",
+        "etiqueta": "✨ RECOMENDADO"
     },
     "Azucar(lb)": {
         "precio": 350, 
         "foto": "Azucar.jpg", 
         "detalle": "Azúcar blanca refinada bien dulce.",
-        "categoria": "Otros"
+        "categoria": "Otros",
+        "etiqueta": ""
     },
     "Frijoles(lb)": {
         "precio": 400, 
         "foto": "Frijolrs.jpg", 
         "detalle": "Frijoles negros nuevos, blanditos al cocinar.",
-        "categoria": "Granos"
+        "categoria": "Granos",
+        "etiqueta": "💪 CALIDAD PREMIUM"
     },
     "Pan(Unidades)": {
         "precio": 50, 
         "foto": "Pan.jpg", 
         "detalle": "Pan suave horneado fresco del día.",
-        "categoria": "Otros"
+        "categoria": "Otros",
+        "etiqueta": "🥖 FRESCO DEL DÍA"
     }
 }
 
 # Aquí guardaremos lo que elija el cliente en la pantalla actual
 encargo = {}
 
+st.write("---")
 st.write("### 🛍️ Productos Disponibles")
 
 # --- INTERFAZ: BUSCADOR (LUPA) ---
@@ -74,7 +86,7 @@ tab_todo, tab_granos, tab_bebidas, tab_pastas, tab_otros = st.tabs([
     "✨ Todo", "🌾 Granos", "🥤 Bebidas", "🍝 Pastas", "📦 Otros"
 ])
 
-# Función interna corregida (añade el nombre de la pestaña al "key" para evitar errores de duplicado)
+# Función interna corregida
 def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
     for prod, info in productos.items():
         if buscar and buscar.lower() not in prod.lower():
@@ -91,19 +103,21 @@ def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
                 st.caption("📸 (Sin foto)")
                 
         with col2:
+            # Muestra la etiqueta de color si tiene una asignada
+            if info["etiqueta"]:
+                st.warning(info["etiqueta"])
+                
             st.write(f"**{prod}**")
             st.write(f"Precio: ${info['precio']}")
             st.caption(info["detalle"]) 
             
-            # El truco secreto: agregamos el nombre_pestana aquí para que cada botón sea único en el sistema
             cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"cant_{prod}_{nombre_pestana}")
             if cantidad > 0:
-                # Si el cliente agrega cantidad desde cualquier pestaña, se guarda en el mismo pedido global
                 encargo[prod] = cantidad
                 
         st.divider()
 
-# Colocar los productos correctos de forma horizontal en sus pestañas
+# Colocar los productos correctos en sus pestañas
 with tab_todo:
     mostrar_productos(categoria_filtro=None, nombre_pestana="todo")
 
@@ -152,7 +166,6 @@ else:
                 texto += f"- {cant}x {item} (${subtotal})\n"
             texto += f"\n*Total a pagar: ${total_carrito}*"
             
-            # Tu número de teléfono configurado
             mi_numero = "5351233908"
             texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
             enlace = f"https://wa.me/{mi_numero}?text={texto_url}"
@@ -161,3 +174,13 @@ else:
             st.link_button("👉 ENVIAR PEDIDO POR WHATSAPP", enlace, use_container_width=True)
         else:
             st.caption("Por favor, rellena tu nombre, dirección y CI para activar el botón de envío.")
+
+# --- NUEVO: SECCIÓN DE CONTACTO RÁPIDO ABAJO DEL TODO ---
+st.write("---")
+st.write("### 📞 ¿Tienes dudas o necesitas ayuda?")
+col_tel, col_chat = st.columns(2)
+
+with col_tel:
+    st.link_button("📞 Llamar por Teléfono", "tel:+5351233908", use_container_width=True)
+with col_chat:
+    st.link_button("💬 Chat de Dudas en WhatsApp", "https://wa.me/5351233908", use_container_width=True)

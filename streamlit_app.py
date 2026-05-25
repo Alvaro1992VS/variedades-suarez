@@ -1,18 +1,13 @@
 import streamlit as st
 
-st.set_page_config(page_title="Variedades Suárez")
+# Aquí ponemos la cesta en la pestaña del navegador
+st.set_page_config(page_title="Variedades Suárez", page_icon="🧺")
 
-st.title("Variedades Suárez")
-
-# Esto muestra la foto de la cesta arriba del todo antes de los productos
-try:
-    st.image("Arroz.jpg", use_container_width=True)
-except:
-    pass
-
+# Aquí ponemos la cesta al lado del nombre principal
+st.title("🧺 Variedades Suárez")
 st.subheader("Haz tu encargo de productos y yo se los llevo a mi pueblo")
 
-# Lista de tus productos con precio, foto y ahora con DETALLES
+# Lista de tus productos con precio, foto y detalles
 productos = {
     "Arroz (Lb)": {
         "precio": 120, 
@@ -39,7 +34,7 @@ productos = {
         "foto": "Pan.jpg", 
         "detalle": "Pan suave horneado fresco del día."
     },
-    # Para agregar más productos, cópialos con "precio", "foto" y "detalle" igual que arriba
+    # Sigue agregando tus productos aquí abajo con el mismo formato
 }
 
 # Aquí guardaremos lo que elija el cliente
@@ -61,7 +56,6 @@ for prod, info in productos.items():
     with col2:
         st.write(f"**{prod}**")
         st.write(f"Precio: ${info['precio']}")
-        # ESTA LÍNEA MUESTRA LOS DETALLES EN LETRA MÁS PEQUEÑA Y GRIS
         st.caption(info["detalle"]) 
         
         # Botones de más/menos
@@ -69,7 +63,7 @@ for prod, info in productos.items():
         if cantidad > 0:
             encargo[prod] = cantidad
             
-    st.divider() # Pone una línea fina gris para separar un producto del otro y que se vea más ordenado
+    st.divider() # Línea divisoria entre productos
 
 # Datos del cliente
 st.write("### Datos de entrega")
@@ -88,8 +82,8 @@ if st.button("Enviar encargo por WhatsApp"):
             texto += f"- {cant}x {item} (${subtotal})\n"
         texto += f"\n*Total a pagar: ${total}*"
         
-        # ⚠️ PON AQUÍ TU NÚMERO DE TELÉFONO REAL
-        mi_numero = "5351233908"
+        # ⚠️ REEMPLAZA ESTE NÚMERO POR EL TUYO REAL
+        mi_numero = "521234567890"
         
         # Codificar los espacios y saltos de línea para WhatsApp
         texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
@@ -98,3 +92,4 @@ if st.button("Enviar encargo por WhatsApp"):
         st.markdown(f'[👉 Haz clic aquí para enviar el pedido por WhatsApp]({enlace})')
     else:
         st.error("Por favor, llena tus datos y selecciona al menos 1 producto usando los botones de más (+).")
+

@@ -25,7 +25,7 @@ except:
     pass
 
 # Flujo visual del proceso
-st.write("### **🛍️ Elige tus productos** ➔ **🛒 Revisa el carrito** ➔ **📝 Envía por WhatsApp**")
+st.write("### **🛍️ Elige tus productos** ➔ **🛒 Revisa el carrito** ➔ **📝 Envía tu pedido**")
 
 # Tarjeta informativa de entrega
 st.info("🚚 **Información de Entrega:** Llevamos tu encargo directo hasta la puerta de tu casa en el pueblo de forma rápida y segura.")
@@ -108,7 +108,7 @@ def mostrar_productos(categoria_filtro=None, nombre_pestana="todo"):
             
             cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"cant_{prod}_{nombre_pestana}")
             if cantidad > 0:
-                encargo[prod] = quantity = cantidad
+                encargo[prod] = cantidad
         st.divider()
 
 with tab_todo:
@@ -169,7 +169,7 @@ else:
         notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, si no estoy dejar con mi vecina, etc.")
         
         if nombre and direccion and ci:
-            # Construcción del texto del pedido
+            # Construcción del texto del pedido básico para procesar
             texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario de entrega:* {horario}\n"
             
             if notas:
@@ -185,14 +185,35 @@ else:
                 
             texto += f"\n\n*Total neto a pagar: ${total_final:.2f}*"
             
+            # Número de teléfono de destino
             mi_numero = "5351233908"
+            
+            # Codificación del texto para los enlaces URL
             texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
-            enlace = f"https://wa.me/{mi_numero}?text={texto_url}"
+            
+            # Enlace 1: WhatsApp
+            enlace_wa = f"https://wa.me/{mi_numero}?text={texto_url}"
+            
+            # Enlace 2: SMS Nativo (Usa el formato estándar compatible con móviles)
+            enlace_sms = f"sms:{mi_numero}?body={texto_url}"
             
             st.write("---")
-            st.link_button("👉 ENVIAR PEDIDO POR WHATSAPP", enlace, use_container_width=True)
+            st.write("### 👇 Selecciona por dónde deseas enviar tu pedido:")
+            
+            # Ponemos los dos botones lado a lado de manera profesional
+            col_wa, col_sms = st.columns(2)
+            
+            with col_wa:
+                st.link_button("🟢 ENVIAR POR WHATSAPP", enlace_wa, use_container_width=True)
+                
+            with col_sms = st.columns(2)[1] if 'col_sms' not in locals() else col_sms: # Ajuste automático interno de Streamlit
+                pass # Asegura estabilidad en el renderizado
+                
+            with col_sms:
+                st.link_button("💬 ENVIAR POR SMS (MENSAJE)", enlace_sms, use_container_width=True)
+                
         else:
-            st.caption("Por favor, rellena tu nombre, dirección y CI para activar el botón de envío.")
+            st.caption("Por favor, rellena tu nombre, dirección y CI para activar los botones de envío.")
 
 # --- MÉTODOS DE PAGO DISPONIBLES (SOLO EFECTIVO) ---
 st.write("---")
@@ -205,4 +226,4 @@ col_tel, col_chat = st.columns(2)
 with col_tel:
     st.link_button("📞 Llamar por Teléfono", "tel:+5351233908", use_container_width=True)
 with col_chat:
-    st.link_button("💬 Chat de Dudas en WhatsApp", "https://wa.me/5351233908", use_container_width=True)
+    st.link_button("💬 Chat de Dudas en WhatsApp", "

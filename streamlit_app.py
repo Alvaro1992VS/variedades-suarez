@@ -60,10 +60,9 @@ encargo = {}
 
 st.write("### 🛍️ Productos Disponibles")
 
-# --- FILTROS DE INTERFAZ (LUPA Y CATEGORÍAS REFORZADAS) ---
+# --- FILTROS DE INTERFAZ (LUPA Y CATEGORÍAS) ---
 buscar = st.text_input("🔍 Buscar producto por su nombre...", value="")
 
-# Menú desplegable para las categorías (Evita que el código se rompa o se duplique)
 categoria_seleccionada = st.selectbox(
     "📂 Selecciona una sección para filtrar:",
     ["Todo", "Granos", "Bebidas", "Pastas", "Otros"]
@@ -73,15 +72,12 @@ st.write("---")
 
 # --- MOSTRAR PRODUCTOS EN PANTALLA ---
 for prod, info in productos.items():
-    # Filtro 1: Buscador de texto (Lupa)
     if buscar and buscar.lower() not in prod.lower():
         continue
         
-    # Filtro 2: Selector de Categorías
     if categoria_seleccionada != "Todo" and info["categoria"] != categoria_seleccionada:
         continue
         
-    # Dibujar el producto de forma limpia
     col1, col2 = st.columns([1, 3])
     with col1:
         try:
@@ -94,7 +90,6 @@ for prod, info in productos.items():
         st.write(f"Precio: ${info['precio']}")
         st.caption(info["detalle"]) 
         
-        # Botón único de cantidad (Imposible de duplicar)
         cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"cant_{prod}")
         if cantidad > 0:
             encargo[prod] = cantidad
@@ -109,7 +104,6 @@ if not encargo:
     st.info("Tu carrito está vacío. Incrementa las cantidades arriba con el botón de más (+) para empezar a armar tu pedido.")
 else:
     total_carrito = 0
-    # Muestra la lista de compras en tiempo real
     for item, cant in encargo.items():
         subtotal = cant * productos[item]["precio"]
         total_carrito += subtotal
@@ -118,7 +112,7 @@ else:
     st.write(f"### 💰 Total acumulado: ${total_carrito}")
     st.write("---")
     
-    # Casilla para activar los datos de entrega de forma segura
+    # Casilla para activar los datos de entrega
     confirmar = st.checkbox("⚙️ Presiona aquí para continuar con la compra y poner tus datos")
     
     if confirmar:
@@ -127,14 +121,21 @@ else:
         direccion = st.text_input("Dirección de entrega:")
         ci = st.text_input("Carnet de Identidad (CI):")
         
-        # Botón para armar el mensaje de WhatsApp
-        if st.button("🟢 PROCESAR INFORMACIÓN DEL PEDIDO"):
-            if nombre and direccion and ci:
-                texto = f"Hola, soy {nombre}.\nMi dirección es: {direccion}\nMi CI es: {ci}\n\nEste es mi encargo:\n"
-                for item, cant in encargo.items():
-                    subtotal = cant * productos[item]["precio"]
-                    texto += f"- {cant}x {item} (${subtotal})\n"
-                texto += f"\n*Total a pagar: ${total_carrito}*"
-                
-                mi_numero = "5351233908"
-                texto_url = texto
+        if nombre and direccion and ci:
+            # Creamos el texto del pedido en tiempo real
+            texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n\n📦 *Productos:* \n"
+            for item, cant in encargo.items():
+                subtotal = cant * productos[item]["precio"]
+                texto += f"- {cant}x {item} (${subtotal})\n"
+            texto += f"\n*Total a pagar: ${total_carrito}*"
+            
+            # Tu número de teléfono configurado
+            mi_numero = "5351233908"
+            texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
+            enlace = f"https://wa.me/{mi_numero}?text={texto_url}"
+            
+            # ESTE BOTÓN REEMPLAZA AL ANTERIOR PROBLEMÁTICO Y ABRE DIRECTO WHATSAPP
+            st.write("---")
+            st.link_button("👉 ENVIAR PEDIDO POR WHATSAPP", enlace, use_container_width=True)
+        else:
+            st.caption("Por favor, rellena tu nombre, dirección y CI para activar el botón de envío.")

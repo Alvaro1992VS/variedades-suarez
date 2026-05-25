@@ -1,82 +1,67 @@
 import streamlit as st
 
-# 1. ESTO QUITA LOS MENÚS EXTRAÑOS Y DEJA LA WEB LIMPIA PARA LOS CLIENTES
-st.set_page_config(page_title="Variedades Suárez", page_icon="🛒", layout="centered")
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    </style>
-    """, unsafe_allow_html=True)
+st.set_page_config(page_title="Variedades Suárez")
 
-st.title("🛒 Variedades Suárez")
-st.write("Haz tu encargo fácilmente y recíbelo en la puerta de tu casa.")
+st.title("Variedades Suárez")
+st.subheader("Haz tu encargo de productos y yo se los llevo a mi pueblo")
 
-# 2. AQUÍ CONTROLAS TUS PRODUCTOS (Nombre, Precio, y el nombre de la foto que subiste)
+# Lista de tus productos actuales con sus precios y nombres de fotos
 productos = {
     "Arroz (Lb)": {"precio": 120, "foto": "Arroz.jpg"},
     "Aceite de Cocina (1L)": {"precio": 850, "foto": "Aceite.jpg"},
     "Azucar(lb)": {"precio": 350, "foto": "Azucar.jpg"},
-    "Frijoles(lb)": {"precio":400, "foto": "Frijolrs.jpg"},
-    "Pan(Unidades)": {"precio":50, "foto": "Pan.jpg"},
-    # ¡Aquí puedes seguir agregando los 20 productos hacia abajo siguiendo el mismo formato!
+    "Frijoles(lb)": {"precio": 400, "foto": "Frijolrs.jpg"},
+    "Pan(Unidades)": {"precio": 50, "foto": "Pan.jpg"},
+    # Sigue agregando más productos aquí abajo manteniendo este mismo formato
 }
 
-# Carrito de compras en la sesión
-if 'carrito' not in st.session_state:
-    st.session_state.carrito = {}
+# Aquí guardaremos lo que elija el cliente en esta pestaña
+encargo = {}
 
-# Mostrar productos en pantalla
-st.subheader("🛍️ Nuestros Productos disponibles")
+st.write("### Productos Disponibles")
 
+# Mostrar productos con sus fotos y botones de más y menos
 for prod, info in productos.items():
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 3])
     
     with col1:
-        # Intenta cargar la foto desde GitHub, si no la encuentra no rompe la página
+        # Intenta cargar la foto desde GitHub
         try:
-            st.image(info["foto"], width=120)
+            st.image(info["foto"], width=100)
         except:
             st.caption("📸 (Sin foto)")
             
     with col2:
-        st.write(f"**{prod}**")
-        st.write(f"Precio: ${info['precio']} C选题") # Cambia aquí a tu moneda local si no es pesos
-        
-        # Botón para añadir
-        if st.button(f"Añadir", key=prod):
-            st.session_state.carrito[prod] = st.session_state.carrito.get(prod, 0) + 1
-            st.success(f"Agregado: {prod}")
+        st.write(f"{prod} - Precio: ${info['precio']}")
+        # Botones de más/menos integrados (mínimo 0, máximo 100, avanza de 1 en 1)
+        cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=prod)
+        if cantidad > 0:
+            encargo[prod] = cantidad
 
-# Formulario de pedido obligatorio
-st.subheader("📝 Datos de Entrega")
-nombre = st.text_input("Nombre Completo:")
-direccion = st.text_input("Dirección de entrega:")
+# Datos del cliente
+st.write("### Datos de entrega")
+nombre = st.text_input("Nombre:")
+direccion = st.text_input("Dirección:")
 ci = st.text_input("Carnet de Identidad (CI):")
 
-# Botón para enviar por WhatsApp
-if st.button("🟢 ENVIAR PEDIDO POR WHATSAPP"):
-    if not nombre or not direccion or not ci:
-        st.error("⚠️ Por favor, rellena todos tus datos antes de enviar.")
-    elif not st.session_state.carrito:
-        st.error("⚠️ El carrito está vacío. Añade algún producto.")
-    else:
-        # Construir el mensaje de texto
-        texto_pedido = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n"
-        texto_pedido += f"👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n\n"
-        texto_pedido += "📦 *Productos:* \n"
-        
+# Botón de envío directo por WhatsApp
+if st.button("Enviar encargo por WhatsApp"):
+    if nombre and direccion and ci and encargo:
+        texto = f"Hola, soy {nombre}.\nMi dirección es: {direccion}\nMi CI es: {ci}\n\nEste es mi encargo:\n"
         total = 0
-        for item, cant in st.session_state.carrito.items():
+        for item, cant in encargo.items():
             subtotal = cant * productos[item]["precio"]
             total += subtotal
-            texto_pedido += f"- {cant}x {item} (${subtotal})\n"
-            
-        texto_pedido += f"\n💰 *Total a pagar:* ${total}"
+            texto += f"- {cant}x {item} (${subtotal})\n"
+        texto += f"\n*Total a pagar: ${total}*"
         
-        # Crear enlace de WhatsApp (Reemplaza el 521234567890 por TU número con código de país)
-        numero_telefono = "5351233908" 
-        enlace_ws = f"https://wa.me/{numero_telefono}?text={encodeURIComponent(texto_pedido)}"
+        # ⚠️ PON AQUÍ TU NÚMERO DE TELÉFONO REAL (ejemplo: "52123456789")
+        mi_numero = "5351233908"
         
-        st.markdown(f'<a href="{enlace_ws}" target="_blank" style="text-decoration:none;"><button style="background-color:#25D366;color:white;padding:10px;border:none;border-radius:5px;width:100%;font-weight:bold;cursor:pointer;">👉 HACER CLIC AQUÍ PARA CONFIRMAR EN WHATSAPP</button></a>', unsafe_allow_html=True)
+        # Codificar los espacios y saltos de línea para WhatsApp
+        texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
+        enlace = f"https://wa.me/{mi_numero}?text={texto_url}"
+        
+        st.markdown(f'[👉 Haz clic aquí para enviar el pedido por WhatsApp]({enlace})')
+    else:
+        st.error("Por favor, llena tus datos y selecciona al menos 1 producto usando los botones de más (+).")

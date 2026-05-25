@@ -12,14 +12,14 @@ st.markdown("""
     
     /* Esto hace las letras de las categorías más grandes, oscuras y en negrita */
     .stTabs [data-baseweb="tab"] p {
-        font-size: 18px !important;    /* Tamaño de la letra (estaba en 14px) */
+        font-size: 18px !important;    /* Tamaño de la letra */
         font-weight: bold !important;  /* Pone la letra en Negrita */
         color: #111111 !important;    /* Color negro bien oscuro */
     }
     
     /* Cambia el color de la línea debajo de la categoría seleccionada */
     .stTabs [data-baseweb="tab-highlight-line"] {
-        background-color: #ff4b4b !important;
+        background-color: #25D366 !important; /* Línea verde WhatsApp */
     }
     </style>
     """, unsafe_allow_html=True)
@@ -131,7 +131,7 @@ nombre = st.text_input("Nombre:")
 direccion = st.text_input("Dirección:")
 ci = st.text_input("Carnet de Identidad (CI):")
 
-# --- BOTÓN DE WHATSAPP ---
+# --- BOTÓN DE ENVIAR ENCARGO ---
 if st.button("Enviar encargo por WhatsApp"):
     if nombre and direccion and ci and encargo:
         texto = f"Hola, soy {nombre}.\nMi dirección es: {direccion}\nMi CI es: {ci}\n\nEste es mi encargo:\n"
@@ -139,4 +139,7 @@ if st.button("Enviar encargo por WhatsApp"):
         for item, cant in encargo.items():
             subtotal = cant * productos[item]["precio"]
             total += subtotal
-            texto += f
+            texto += f"- {cant}x {item} (${subtotal})\n"
+        texto += f"\n*Total a pagar: ${total}*"
+        
+        mi_numero = "5351233908"

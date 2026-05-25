@@ -20,7 +20,7 @@ st.title("🧺 Variedades Suárez")
 
 # Muestra la foto de portada
 try:
-    st.image("Arroz.jpg", use_container_width=True)
+    st.image("copilot_image_1779749338479.jpeg", use_container_width=True)
 except:
     pass
 

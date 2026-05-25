@@ -15,9 +15,11 @@ st.write("Haz tu encargo fácilmente y recíbelo en la puerta de tu casa.")
 
 # 2. AQUÍ CONTROLAS TUS PRODUCTOS (Nombre, Precio, y el nombre de la foto que subiste)
 productos = {
-    "Arroz (1 Libra)": {"precio": 120, "foto": "arroz.jpg"},
-    "Aceite de Cocina (1L)": {"precio": 850, "foto": "aceite.webp"},
-    "Jabón de Baño": {"precio": 90, "foto": "jabon.png"},
+    "Arroz (Lb)": {"precio": 120, "foto": "Arroz.jpg"},
+    "Aceite de Cocina (1L)": {"precio": 850, "foto": "Aceite.jpg"},
+    "Azucar(lb)": {"precio": 350, "foto": "Azucar.jpg"},
+    "Frijoles(lb)": {"precio":400, "foto": "Frijolrs.jpg"},
+    "Pan(Unidades)": {"precio":50, "foto": "Pan.jpg"},
     # ¡Aquí puedes seguir agregando los 20 productos hacia abajo siguiendo el mismo formato!
 }
 
@@ -74,7 +76,7 @@ if st.button("🟢 ENVIAR PEDIDO POR WHATSAPP"):
         texto_pedido += f"\n💰 *Total a pagar:* ${total}"
         
         # Crear enlace de WhatsApp (Reemplaza el 521234567890 por TU número con código de país)
-        numero_telefono = "521234567890" 
+        numero_telefono = "5351233908" 
         enlace_ws = f"https://wa.me/{numero_telefono}?text={encodeURIComponent(texto_pedido)}"
         
         st.markdown(f'<a href="{enlace_ws}" target="_blank" style="text-decoration:none;"><button style="background-color:#25D366;color:white;padding:10px;border:none;border-radius:5px;width:100%;font-weight:bold;cursor:pointer;">👉 HACER CLIC AQUÍ PARA CONFIRMAR EN WHATSAPP</button></a>', unsafe_allow_html=True)

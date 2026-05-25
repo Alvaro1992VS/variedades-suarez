@@ -2,16 +2,11 @@ import streamlit as st
 
 st.set_page_config(page_title="Variedades Suárez", page_icon="🧺")
 
-# --- INTERFAZ: COLOR DE FONDO Y DISEÑO DE CATEGORÍAS ---
+# --- INTERFAZ: COLOR DE FONDO ---
 st.markdown("""
     <style>
     .stApp {
         background-color: #f4f6f9;
-    }
-    .stTabs [data-baseweb="tab"] p {
-        font-size: 18px !important;    
-        font-weight: bold !important;  
-        color: #111111 !important;    
     }
     </style>
     """, unsafe_allow_html=True)
@@ -63,39 +58,83 @@ productos = {
 # Aquí guardaremos lo que elija el cliente en la pantalla actual
 encargo = {}
 
-# --- INTERFAZ: BUSCADOR (LUPA) ---
 st.write("### 🛍️ Productos Disponibles")
+
+# --- FILTROS DE INTERFAZ (LUPA Y CATEGORÍAS REFORZADAS) ---
 buscar = st.text_input("🔍 Buscar producto por su nombre...", value="")
 
-# --- INTERFAZ: SECCIONES (PESTAÑAS) ---
-tab_todo, tab_granos, tab_bebidas, tab_pastas, tab_otros = st.tabs([
-    "✨ Todo", "🌾 Granos", "🥤 Bebidas", "🍝 Pastas", "📦 Otros"
-])
+# Menú desplegable para las categorías (Evita que el código se rompa o se duplique)
+categoria_seleccionada = st.selectbox(
+    "📂 Selecciona una sección para filtrar:",
+    ["Todo", "Granos", "Bebidas", "Pastas", "Otros"]
+)
 
-# Función interna para mostrar los productos filtrados en pantalla
-def mostrar_productos(categoria_filtro=None):
-    for prod, info in productos.items():
-        if buscar and buscar.lower() not in prod.lower():
-            continue
+st.write("---")
+
+# --- MOSTRAR PRODUCTOS EN PANTALLA ---
+for prod, info in productos.items():
+    # Filtro 1: Buscador de texto (Lupa)
+    if buscar and buscar.lower() not in prod.lower():
+        continue
+        
+    # Filtro 2: Selector de Categorías
+    if categoria_seleccionada != "Todo" and info["categoria"] != categoria_seleccionada:
+        continue
+        
+    # Dibujar el producto de forma limpia
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        try:
+            st.image(info["foto"], width=100)
+        except:
+            st.caption("📸 (Sin foto)")
             
-        if categoria_filtro and info["categoria"] != categoria_filtro:
-            continue
+    with col2:
+        st.write(f"**{prod}**")
+        st.write(f"Precio: ${info['precio']}")
+        st.caption(info["detalle"]) 
+        
+        # Botón único de cantidad (Imposible de duplicar)
+        cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"cant_{prod}")
+        if cantidad > 0:
+            encargo[prod] = cantidad
             
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            try:
-                st.image(info["foto"], width=100)
-            except:
-                st.caption("📸 (Sin foto)")
+    st.divider()
+
+
+# --- SECCIÓN DEL CARRITO DE COMPRAS ---
+st.write("## 🛒 Tu Carrito de Compras")
+
+if not encargo:
+    st.info("Tu carrito está vacío. Incrementa las cantidades arriba con el botón de más (+) para empezar a armar tu pedido.")
+else:
+    total_carrito = 0
+    # Muestra la lista de compras en tiempo real
+    for item, cant in encargo.items():
+        subtotal = cant * productos[item]["precio"]
+        total_carrito += subtotal
+        st.write(f"🔹 **{cant}x** {item} — ${subtotal}")
+    
+    st.write(f"### 💰 Total acumulado: ${total_carrito}")
+    st.write("---")
+    
+    # Casilla para activar los datos de entrega de forma segura
+    confirmar = st.checkbox("⚙️ Presiona aquí para continuar con la compra y poner tus datos")
+    
+    if confirmar:
+        st.write("## 📝 Información de Entrega")
+        nombre = st.text_input("Nombre y Apellidos:")
+        direccion = st.text_input("Dirección de entrega:")
+        ci = st.text_input("Carnet de Identidad (CI):")
+        
+        # Botón para armar el mensaje de WhatsApp
+        if st.button("🟢 PROCESAR INFORMACIÓN DEL PEDIDO"):
+            if nombre and direccion and ci:
+                texto = f"Hola, soy {nombre}.\nMi dirección es: {direccion}\nMi CI es: {ci}\n\nEste es mi encargo:\n"
+                for item, cant in encargo.items():
+                    subtotal = cant * productos[item]["precio"]
+                    texto += f"- {cant}x {item} (${subtotal})\n"
+                texto += f"\n*Total a pagar: ${total_carrito}*"
                 
-        with col2:
-            st.write(f"**{prod}**")
-            st.write(f"Precio: ${info['precio']}")
-            st.caption(info["detalle"]) 
-            
-            # Botones de cantidad más/menos directos
-            cantidad = st.number_input(f"Cantidad para {prod}", min_value=0, max_value=100, value=0, step=1, key=f"{prod}_{categoria_filtro}")
-            if cantidad > 0:
-                encargo[prod] = cantidad
-                
-        st.divider()
+                mi_numero = "5351233908"
+                texto_url = texto

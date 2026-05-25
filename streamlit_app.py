@@ -24,7 +24,7 @@ try:
 except:
     pass
 
-# Plujo visual del proceso
+# Flujo visual del proceso
 st.write("### **🛍️ Elige tus productos** ➔ **🛒 Revisa el carrito** ➔ **📝 Envía tu pedido**")
 
 # Tarjeta informativa de entrega
@@ -148,10 +148,19 @@ else:
         
     total_final = total_carrito - descuento
     
-    # 🧾 RECIBO DE COMPRA EN PANTALLA PARA EL CLIENTE
+    # 🧾 NUEVO: RECIBO DE COMPRA ESTILO TICKET EN PANTALLA
     st.write("### 🧾 Resumen de Cuenta (Tu Recibo)")
-    st.write(f"Subtotal de productos: ${total_carrito:.2f}")
-    st.write(f"Descuento aplicado: -${descuento:.2f}")
+    
+    # Estructura limpia y con diseño de lista tipo WhatsApp
+    st.markdown("#### **📦 Productos seleccionados:**")
+    for item, cant in encargo.items():
+        subtotal_item = cant * productos[item]["precio"]
+        st.text(f"- {cant}x {item} (${subtotal_item:.2f})")
+        
+    if descuento > 0:
+        st.text(f"🎟️ Cupón Aplicado: SUAREZ10 (-${descuento:.2f})")
+        
+    st.write(f"**Subtotal bruto:** ${total_carrito:.2f}")
     st.markdown(f"### **Total Neto a Pagar: ${total_final:.2f}**")
     st.write("---")
     
@@ -174,7 +183,7 @@ else:
         notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, si no estoy dejar con mi vecina, etc.")
         
         if nombre and direccion and ci:
-            # Construcción del texto del pedido
+            # Construcción del texto del pedido para WhatsApp
             texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario de entrega:* {horario}\n"
             
             if notas:

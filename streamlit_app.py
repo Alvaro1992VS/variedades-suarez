@@ -6,7 +6,7 @@ st.title("Variedades Suárez")
 
 # Esto muestra la foto de la cesta arriba del todo antes de los productos
 try:
-    st.image("Cesta.jpg", use_container_width=True)
+    st.image("Arroz.jpg", use_container_width=True)
 except:
     pass
 

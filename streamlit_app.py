@@ -169,7 +169,7 @@ else:
         notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, si no estoy dejar con mi vecina, etc.")
         
         if nombre and direccion and ci:
-            # Construcción del texto del pedido básico para procesar
+            # Construcción del texto del pedido
             texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario de entrega:* {horario}\n"
             
             if notas:
@@ -191,24 +191,16 @@ else:
             # Codificación del texto para los enlaces URL
             texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
             
-            # Enlace 1: WhatsApp
             enlace_wa = f"https://wa.me/{mi_numero}?text={texto_url}"
-            
-            # Enlace 2: SMS Nativo (Usa el formato estándar compatible con móviles)
             enlace_sms = f"sms:{mi_numero}?body={texto_url}"
             
             st.write("---")
             st.write("### 👇 Selecciona por dónde deseas enviar tu pedido:")
             
-            # Ponemos los dos botones lado a lado de manera profesional
+            # Botones de envío limpios en dos columnas profesionales
             col_wa, col_sms = st.columns(2)
-            
             with col_wa:
                 st.link_button("🟢 ENVIAR POR WHATSAPP", enlace_wa, use_container_width=True)
-                
-            with col_sms = st.columns(2)[1] if 'col_sms' not in locals() else col_sms: # Ajuste automático interno de Streamlit
-                pass # Asegura estabilidad en el renderizado
-                
             with col_sms:
                 st.link_button("💬 ENVIAR POR SMS (MENSAJE)", enlace_sms, use_container_width=True)
                 
@@ -219,11 +211,11 @@ else:
 st.write("---")
 st.success("💰 **Método de pago aceptado:** Únicamente pago en efectivo al recibir los productos en casa.")
 
-# Sección de contacto rápido abajo del todo
+# Sección de contacto rápido limpia y corregida sin duplicados
 st.write("### 📞 ¿Tienes dudas o necesitas ayuda?")
 col_tel, col_chat = st.columns(2)
 
 with col_tel:
     st.link_button("📞 Llamar por Teléfono", "tel:+5351233908", use_container_width=True)
 with col_chat:
-    st.link_button("💬 Chat de Dudas en WhatsApp", "
+    st.link_button("💬 Chat de Dudas en WhatsApp", "https://wa.me/5351233908", use_container_width=True)

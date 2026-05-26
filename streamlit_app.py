@@ -92,27 +92,43 @@ st.markdown("""
         gap: 10px;
     }
 
-    /* CONVERSIÓN DEL BOTÓN DE STREAMLIT EN LA BARRA FLOTANTE AZUL DE EL YERRO MENU */
-    div.stButton > button[key^="btn_flotante"] {
+    /* TRUCO MAESTRO: HACER QUE EL BOTÓN FLOTE REALMENTE SOBRE LA PÁGINA */
+    /* Buscamos cualquier botón dentro del contenedor de Streamlit que use nuestra clave 'btn_flotante' */
+    div.stButton > button {
+        /* Si detecta la propiedad que inyectamos abajo, lo clava al fondo */
+    }
+    
+    /* Aplicar fuerza bruta para fijar el botón abajo en la pantalla del móvil */
+    iframe + div div.stButton > button, 
+    .stApp div.stButton > button {
         position: fixed !important;
-        bottom: 20px !important;
+        bottom: 25px !important;
         left: 5% !important;
         width: 90% !important;
         background-color: #0f2d59 !important;
         color: white !important;
         text-align: center !important;
-        padding: 15px !important;
+        padding: 14px 20px !important;
         border-radius: 30px !important;
         font-weight: bold !important;
-        font-size: 15px !important;
-        box-shadow: 0 10px 20px rgba(15, 45, 89, 0.3) !important;
-        z-index: 999 !important;
+        font-size: 16px !important;
+        box-shadow: 0 8px 25px rgba(15, 45, 89, 0.45) !important;
+        z-index: 999999 !important; /* Capa máxima para que nada lo tape al bajar */
         border: none !important;
-        transition: transform 0.1s ease;
+        display: block !important;
     }
     
-    div.stButton > button[key^="btn_flotante"]:active {
-        transform: scale(0.98) !important;
+    /* Evitar que se desconfigure al presionarlo */
+    .stApp div.stButton > button:hover, .stApp div.stButton > button:active, .stApp div.stButton > button:focus {
+        background-color: #0f2d59 !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 8px 25px rgba(15, 45, 89, 0.6) !important;
+    }
+    
+    /* Espacio fantasma abajo para que las últimas tarjetas no se tapen con el botón flotante */
+    .espacio-final {
+        height: 90px;
     }
     
     /* Botón principal de WhatsApp */
@@ -217,7 +233,10 @@ if not st.session_state.ver_carrito:
     with tab_pastas: render_grid("Pastas")
     with tab_otros: render_grid("Otros")
 
-    # --- BARRA FLOTANTE AZUL INTERACTIVA ---
+    # Colocamos un div vacío para que los productos no se queden detrás del botón al bajar todo
+    st.markdown('<div class="espacio-final"></div>', unsafe_allow_html=True)
+
+    # --- NUEVA BARRA FLOTANTE FIJA SUPERIOR ---
     total_items = sum(encargo.values())
     total_dinero = sum(cant * productos[item]["precio"] for item, cant in encargo.items())
     
@@ -225,8 +244,8 @@ if not st.session_state.ver_carrito:
         st.session_state.pedido_actual = encargo
         st.session_state.total_dinero = total_dinero
         
-        # AHORA LA BARRA AZUL FLOTANTE ES UN BOTÓN REAL: Al presionarla avanza directo a la confirmación
-        if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", key="btn_flotante", use_container_width=True):
+        # Este botón ahora se queda 100% fijo abajo en tu pantalla gracias al CSS inyectado
+        if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", use_container_width=True):
             st.session_state.ver_carrito = True
             st.rerun()
 

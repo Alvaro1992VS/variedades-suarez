@@ -1,6 +1,6 @@
 import streamlit as st
 
-# ¡FIX PRINCIPAL!: st.set_page_config SIEMPRE debe ir primero que cualquier st.markdown
+# Configuración de página obligatoria en la primera línea
 st.set_page_config(page_title="Variedades Suárez", page_icon="🧺", layout="centered")
 
 # --- DISEÑO INSPIRADO EN EL YERRO MENU (INTERFAZ PREMIUM) ---
@@ -17,21 +17,22 @@ st.markdown("""
     
     /* Encabezado de la tienda */
     .store-header {
-        text-align: center;
-        padding: 10px;
+        padding: 5px 0px;
         margin-bottom: 5px;
     }
     .store-title {
-        font-size: 26px !important;
+        font-size: 24px !important;
         font-weight: 800 !important;
         color: #0f2d59 !important;
         text-transform: uppercase;
         margin-bottom: 2px;
+        line-height: 1.1;
     }
     .store-tag {
         color: #4a5568 !important;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
+        margin-bottom: 0px;
     }
 
     /* Pestañas de categorías estilo elyerromenu */
@@ -78,7 +79,6 @@ st.markdown("""
         font-size: 14px !important;
         color: #0f2d59 !important;
         font-weight: 700 !important;
-        margin-bottom: 5px;
     }
 
     /* Caja de Tipo de Servicio */
@@ -92,52 +92,36 @@ st.markdown("""
         align-items: center;
         gap: 10px;
     }
-
-    /* TRUCO MAESTRO: ESTILO INYECTADO PARA QUE EL BOTÓN FLOTE REALMENTE ABAJO */
-    .boton-flotante-contenedor div.stButton > button {
-        position: fixed !important;
-        bottom: 25px !important;
-        left: 5% !important;
-        width: 90% !important;
-        background-color: #0f2d59 !important;
-        color: white !important;
-        text-align: center !important;
-        padding: 14px 20px !important;
-        border-radius: 30px !important;
+    
+    /* BOTÓN DEL CARRITO SUPERIOR DERECHA */
+    .cart-btn-container div.stButton > button {
+        background-color: #ffffff !important;
+        color: #0f2d59 !important;
+        border: 2px solid #0f2d59 !important;
+        border-radius: 15px !important;
         font-weight: bold !important;
-        font-size: 16px !important;
-        box-shadow: 0 8px 25px rgba(15, 45, 89, 0.45) !important;
-        z-index: 999999 !important;
-        border: none !important;
-        display: block !important;
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+        transition: all 0.3s ease;
     }
     
-    .boton-flotante-contenedor div.stButton > button:hover, 
-    .boton-flotante-contenedor div.stButton > button:active, 
-    .boton-flotante-contenedor div.stButton > button:focus {
+    /* Variación cuando el carrito tiene productos activos */
+    .cart-active div.stButton > button {
         background-color: #0f2d59 !important;
-        color: white !important;
-        border: none !important;
-        box-shadow: 0 8px 25px rgba(15, 45, 89, 0.6) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(15, 45, 89, 0.3) !important;
     }
-    
-    /* BOTONES ESTÁNDAR (Volver y Agregar Cupón se quedan quietos en su celda) */
+
+    /* Botón estándar para cupones y volver */
     .boton-normal div.stButton > button {
-        position: static !important;
-        width: 100% !important;
         background-color: #ffffff !important;
         color: #1a202c !important;
         border: 1px solid #e2e8f0 !important;
         border-radius: 8px !important;
         padding: 6px 12px !important;
-        box-shadow: none !important;
-    }
-
-    .espacio-final {
-        height: 95px;
     }
     
-    /* Botón de confirmar pedido final (Llamativo de WhatsApp) */
+    /* Botón final de WhatsApp */
     div.stLinkButton > a[href^="https://wa.me"] {
         background-color: #0f2d59 !important;
         color: white !important;
@@ -152,39 +136,80 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CABECERA DE LA TIENDA ---
-st.markdown("""
-    <div class="store-header">
-        <p class="store-title">🧺 Variedades Suárez</p>
-        <p class="store-tag">🚚 Haz tu encargo de productos y yo se lo llevo hasta su casa</p>
-    </div>
-    """, unsafe_allow_html=True)
+# Inicializar estados de la sesión
+if 'ver_carrito' not in st.session_state:
+    st.session_state.ver_carrito = False
+if 'pedido_actual' not in st.session_state:
+    st.session_state.pedido_actual = {}
+if 'total_dinero' not in st.session_state:
+    st.session_state.total_dinero = 0.0
+
+# --- TU LISTA DE PRODUCTOS ---
+productos = {
+    "Arroz (Lb)": {"precio": 120, "foto": "Arroz.jpg", "categoria": "Granos"},
+    "Aceite de Cocina (1L)": {"precio": 850, "foto": "Aceite.jpg", "categoria": "Otros"},
+    "Azucar(lb)": {"precio": 350, "foto": "Azucar.jpg", "categoria": "Otros"},
+    "Frijoles(lb)": {"precio": 400, "foto": "Frijolrs.jpg", "categoria": "Granos"},
+    "Pan(Unidades)": {"precio": 50, "foto": "Pan.jpg", "categoria": "Otros"}
+}
+
+# Diccionario temporal para capturar la selección actual en tiempo real
+encargo = {}
+
+# --- RECOLECCIÓN PREVIA DE CANTIDADES (Para actualizar el botón superior dinámicamente) ---
+# Clonamos el estado para no romper los inputs del catálogo mientras se renderizan
+for prod in productos:
+    for cat_key in ["todo", "Granos", "Bebidas", "Pastas", "Otros"]:
+        key_name = f"cat_{prod}_{cat_key}"
+        if key_name in st.session_state and st.session_state[key_name] > 0:
+            encargo[prod] = st.session_state[key_name]
+
+total_items = sum(encargo.values())
+total_dinero = sum(cant * productos[item]["precio"] for item, cant in encargo.items())
+
+if total_items > 0:
+    st.session_state.pedido_actual = encargo
+    st.session_state.total_dinero = total_dinero
+else:
+    st.session_state.pedido_actual = {}
+    st.session_state.total_dinero = 0.0
+
+
+# --- CABECERA SUPERIOR DINÁMICA ---
+col_titulo, col_carrito = st.columns([3, 1.2])
+
+with col_titulo:
+    st.markdown("""
+        <div class="store-header">
+            <p class="store-title">🧺 Variedades Suárez</p>
+            <p class="store-tag">🚚 Encarga y te lo llevo al pueblo</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+with col_carrito:
+    # Solo mostramos el acceso al carrito si estamos en la vista de catálogo
+    if not st.session_state.ver_carrito:
+        cart_style = "cart-active" if total_items > 0 else "cart-empty"
+        st.markdown(f'<div class="cart-btn-container {cart_style}" style="margin-top: 15px; text-align: right;">', unsafe_allow_html=True)
+        label_carrito = f"🛒 ({total_items})" if total_items > 0 else "🛒 Vacío"
+        if st.button(label_carrito, key="ir_al_carrito_top"):
+            if total_items > 0:
+                st.session_state.ver_carrito = True
+                st.rerun()
+            else:
+                st.toast("⚠️ Añade algún producto primero", icon="🧺")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 try:
     st.image("copilot_image_1779749338479.jpeg", use_container_width=True)
 except:
     pass
 
-st.info("🚚 **Información de Entrega:** Llevamos tu encargo directo hasta la puerta de tu casa en el pueblo de forma rápida y segura.")
-
-if 'ver_carrito' not in st.session_state:
-    st.session_state.ver_carrito = False
-
-# --- TU LISTA DE PRODUCTOS ---
-productos = {
-    "Arroz (Lb)": {"precio": 120, "foto": "Arroz.jpg", "detalle": "Arroz blanco de grano entero de primera calidad.", "categoria": "Granos"},
-    "Aceite de Cocina (1L)": {"precio": 850, "foto": "Aceite.jpg", "detalle": "Aceite vegetal ideal para freír y cocinar.", "categoria": "Otros"},
-    "Azucar(lb)": {"precio": 350, "foto": "Azucar.jpg", "detalle": "Azúcar blanca refinada bien dulce.", "categoria": "Otros"},
-    "Frijoles(lb)": {"precio": 400, "foto": "Frijolrs.jpg", "detalle": "Frijoles negros nuevos, blanditos al cocinar.", "categoria": "Granos"},
-    "Pan(Unidades)": {"precio": 50, "foto": "Pan.jpg", "detalle": "Pan suave horneado fresco del día.", "categoria": "Otros"}
-}
-
-encargo = {}
-
-# --- PANTALLA 1: EL CATÁLOGO EN CUADRÍCULA (GRID) ---
+# --- PANTALLA 1: EL CATÁLOGO ---
 if not st.session_state.ver_carrito:
+    st.info(" Haz tu encargo de productos y yo se lo llevo directo hasta la puerta de su casa.")
     
-    buscar = st.text_input("🔍 Buscar producto por su nombre...", value="")
+    buscar = st.text_input("🔍 Buscar producto...", value="")
     
     tab_todo, tab_granos, tab_bebidas, tab_pastas, tab_otros = st.tabs([
         "✨ Todo", "🌾 Granos", "🥤 Bebidas", "🍝 Pastas", "📦 Otros"
@@ -200,9 +225,8 @@ if not st.session_state.ver_carrito:
             prods_filtrados[k] = v
             
         items = list(prods_filtrados.items())
-        
         if len(items) == 0:
-            st.caption("Próximamente agregaremos productos a esta categoría. ¡Mantente atento! 😉")
+            st.caption("Próximamente más existencias. 😉")
             return
 
         for i in range(0, len(items), 2):
@@ -215,8 +239,7 @@ if not st.session_state.ver_carrito:
                 except: st.caption("📸 (Sin foto)")
                 st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                 st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
-                cant = st.number_input("Cantidad", min_value=0, max_value=100, value=0, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}")
-                if cant > 0: encargo[prod] = cant
+                st.number_input("Cantidad", min_value=0, max_value=100, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}", on_change=lambda: setattr(st.session_state, 'rerun_flag', True))
                 st.markdown('</div>', unsafe_allow_html=True)
             
             with col2:
@@ -227,8 +250,7 @@ if not st.session_state.ver_carrito:
                     except: st.caption("📸 (Sin foto)")
                     st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                     st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
-                    cant = st.number_input("Cantidad", min_value=0, max_value=100, value=0, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}")
-                    if cant > 0: encargo[prod] = cant
+                    st.number_input("Cantidad", min_value=0, max_value=100, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}", on_change=lambda: setattr(st.session_state, 'rerun_flag', True))
                     st.markdown('</div>', unsafe_allow_html=True)
 
     with tab_todo: render_grid(None)
@@ -237,21 +259,10 @@ if not st.session_state.ver_carrito:
     with tab_pastas: render_grid("Pastas")
     with tab_otros: render_grid("Otros")
 
-    st.markdown('<div class="espacio-final"></div>', unsafe_allow_html=True)
-
-    total_items = sum(encargo.values())
-    total_dinero = sum(cant * productos[item]["precio"] for item, cant in encargo.items())
-    
-    if total_items > 0:
-        st.session_state.pedido_actual = encargo
-        st.session_state.total_dinero = total_dinero
-        
-        # LOGICA PERFECTA: Al estar condicionado aquí adentro, el botón deja de existir físicamente en la pantalla 2
-        st.markdown('<div class="boton-flotante-contenedor">', unsafe_allow_html=True)
-        if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", key="btn_flotante", use_container_width=True):
-            st.session_state.ver_carrito = True
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Si hubo cambios en los selectores de cantidad, forzar recarga sutil para actualizar el contador superior
+    if st.session_state.get('rerun_flag', False):
+        st.session_state.rerun_flag = False
+        st.rerun()
 
 # --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO ---
 else:
@@ -274,11 +285,10 @@ else:
         """, unsafe_allow_html=True)
         
     pedido = st.session_state.get('pedido_actual', {})
-    total_final = st.session_state.get('total_dinero', 0)
+    total_final = st.session_state.get('total_dinero', 0.0)
     
     st.write("### Productos solicitados")
     for item, cant in pedido.items():
-        subtotal_item = cant * productos[item]["precio"]
         col_img, col_txt = st.columns([1, 3])
         with col_img:
             try: st.image(productos[item]["foto"], width=65)
@@ -311,7 +321,7 @@ else:
     direccion = st.text_input("Dirección de entrega:")
     ci = st.text_input("Carnet de Identidad (CI):")
     horario = st.selectbox("🕒 Horario de entrega preferido", ["Por la Mañana (9:00 AM - 12:00 PM)", "Por la Tarde (2:00 PM - 6:00 PM)"])
-    notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, dejar con la vecina...")
+    notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde...")
     
     if nombre and direccion and ci:
         texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"

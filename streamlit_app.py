@@ -92,14 +92,14 @@ st.markdown("""
         gap: 10px;
     }
 
-    /* TRUCO MAESTRO: HACER QUE EL BOTÓN FLOTE REALMENTE SOBRE LA PÁGINA */
-    /* Buscamos cualquier botón dentro del contenedor de Streamlit que use nuestra clave 'btn_flotante' */
-    div.stButton > button {
-        /* Si detecta la propiedad que inyectamos abajo, lo clava al fondo */
+    /* TRUCO MAESTRO: BOTÓN FLOTANTE AZUL EXCLUSIVO DE LA PANTALLA DE CATÁLOGO */
+    /* Targeteamos específicamente el contenedor cuando NO está en modo carrito */
+    .stApp div[data-testid="stHeader"] + div div.stButton > button {
+        /* CSS base heredado */
     }
     
-    /* Aplicar fuerza bruta para fijar el botón abajo en la pantalla del móvil */
-    iframe + div div.stButton > button, 
+    /* Forzar que el botón con la clave 'btn_flotante' flote fíjamente abajo */
+    iframe + div div.stButton > button[key="btn_flotante"], 
     .stApp div.stButton > button {
         position: fixed !important;
         bottom: 25px !important;
@@ -113,12 +113,11 @@ st.markdown("""
         font-weight: bold !important;
         font-size: 16px !important;
         box-shadow: 0 8px 25px rgba(15, 45, 89, 0.45) !important;
-        z-index: 999999 !important; /* Capa máxima para que nada lo tape al bajar */
+        z-index: 999999 !important;
         border: none !important;
         display: block !important;
     }
     
-    /* Evitar que se desconfigure al presionarlo */
     .stApp div.stButton > button:hover, .stApp div.stButton > button:active, .stApp div.stButton > button:focus {
         background-color: #0f2d59 !important;
         color: white !important;
@@ -126,13 +125,26 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(15, 45, 89, 0.6) !important;
     }
     
-    /* Espacio fantasma abajo para que las últimas tarjetas no se tapen con el botón flotante */
+    /* MODIFICACIÓN: En la pantalla de datos/carrito, el botón de continuar o volver recupera el estilo normal sin flotar */
+    .carrito-container div.stButton > button, 
+    div.stForm div.stButton > button,
+    .stApp div.carrito-container div.stButton > button {
+        position: static !important;
+        width: auto !important;
+        background-color: transparent !important;
+        color: #0f2d59 !important;
+        border: 1px solid #edf2f7 !important;
+        box-shadow: none !important;
+        padding: 6px 12px !important;
+        border-radius: 8px !important;
+    }
+
     .espacio-final {
         height: 90px;
     }
     
-    /* Botón principal de WhatsApp */
-    div.stLinkButton > a[href^="https://wa.me"] {
+    /* Botón de confirmar pedido estilo El Yerro (Grande y vistoso al final de la pantalla 2) */
+    .carrito-container div.stLinkButton > a[href^="https://wa.me"] {
         background-color: #0f2d59 !important;
         color: white !important;
         font-weight: bold !important;
@@ -140,6 +152,8 @@ st.markdown("""
         padding: 14px !important;
         font-size: 16px !important;
         box-shadow: 0 4px 12px rgba(15, 45, 89, 0.2) !important;
+        display: block !important;
+        text-align: center !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -152,7 +166,6 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-# Muestra tu foto de portada fija
 try:
     st.image("copilot_image_1779749338479.jpeg", use_container_width=True)
 except:
@@ -160,7 +173,6 @@ except:
 
 st.info("🚚 **Información de Entrega:** Llevamos tu encargo directo hasta la puerta de tu casa en el pueblo de forma rápida y segura.")
 
-# Control de pantallas
 if 'ver_carrito' not in st.session_state:
     st.session_state.ver_carrito = False
 
@@ -202,7 +214,6 @@ if not st.session_state.ver_carrito:
         for i in range(0, len(items), 2):
             col1, col2 = st.columns(2)
             
-            # Columna izquierda
             with col1:
                 prod, info = items[i]
                 st.markdown('<div class="product-box">', unsafe_allow_html=True)
@@ -214,7 +225,6 @@ if not st.session_state.ver_carrito:
                 if cant > 0: encargo[prod] = cant
                 st.markdown('</div>', unsafe_allow_html=True)
             
-            # Columna derecha
             with col2:
                 if i + 1 < len(items):
                     prod, info = items[i+1]
@@ -233,10 +243,8 @@ if not st.session_state.ver_carrito:
     with tab_pastas: render_grid("Pastas")
     with tab_otros: render_grid("Otros")
 
-    # Colocamos un div vacío para que los productos no se queden detrás del botón al bajar todo
     st.markdown('<div class="espacio-final"></div>', unsafe_allow_html=True)
 
-    # --- NUEVA BARRA FLOTANTE FIJA SUPERIOR ---
     total_items = sum(encargo.values())
     total_dinero = sum(cant * productos[item]["precio"] for item, cant in encargo.items())
     
@@ -244,13 +252,15 @@ if not st.session_state.ver_carrito:
         st.session_state.pedido_actual = encargo
         st.session_state.total_dinero = total_dinero
         
-        # Este botón ahora se queda 100% fijo abajo en tu pantalla gracias al CSS inyectado
-        if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", use_container_width=True):
+        # Al presionar el botón flotante se avanza a la siguiente vista
+        if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", key="btn_flotante", use_container_width=True):
             st.session_state.ver_carrito = True
             st.rerun()
 
-# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO ---
+# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO (MÓDULO WRAPPED EN CLASE .carrito-container) ---
 else:
+    st.markdown('<div class="carrito-container">', unsafe_allow_html=True)
+    
     if st.button("⬅️ Volver al Catálogo"):
         st.session_state.ver_carrito = False
         st.rerun()
@@ -292,7 +302,7 @@ else:
     descuento = 0
     if cupon == "SUAREZ10":
         descuento = total_final * 0.10
-        st.success(f"🎉 ¡Cupón SUAREZ10 aplicado! Descuento: -${descuento:.2f}")
+        st.success(f"🎉 ¡Cupón SUAREZ10 aplicado! Descuento: -${descuento:.2f} CUP")
         total_final -= descuento
 
     st.markdown(f"### **Total Neto a Pagar: {total_final:.2f} CUP**")
@@ -306,12 +316,19 @@ else:
     notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, dejar con la vecina...")
     
     if nombre and direccion and ci:
+        # Texto limpio para el mensaje de WhatsApp con el cupón solicitado
         texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
         if notas:
             texto += f"📝 *Notas:* {notas}\n"
+        
         texto += "\n📦 *Productos:* \n"
         for item, cant in pedido.items():
             texto += f"- {cant}x {item} (${cant * productos[item]['precio']:.2f} CUP)\n"
+            
+        # NUEVO: Se añade el nombre del cupón y el total descontado al mensaje
+        if descuento > 0:
+            texto += f"\n🎟️ *Cupón Aplicado:* {cupon} (-${descuento:.2f} CUP)\n"
+            
         texto += f"\n*Total neto a pagar: {total_final:.2f} CUP*"
         
         mi_numero = "5351233908"
@@ -322,6 +339,8 @@ else:
         st.link_button(f"CONTINUAR CON EL PEDIDO • {total_final:.2f} CUP", enlace_wa, use_container_width=True)
     else:
         st.caption("⚠️ Por favor completa tu Nombre, Dirección y CI para habilitar el botón de WhatsApp.")
+        
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- MÉTODOS DE PAGO Y CONTACTO ---
 st.write("---")

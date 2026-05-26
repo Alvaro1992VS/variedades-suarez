@@ -1,6 +1,5 @@
 import streamlit as st
 
-# CORREGIDO: Se cambia "vertical" por "centered" para que Streamlit no dé error
 st.set_page_config(page_title="Variedades Suárez", page_icon="🧺", layout="centered")
 
 # --- DISEÑO INSPIRADO EN EL YERRO MENU (INTERFAZ PREMIUM) ---
@@ -93,21 +92,27 @@ st.markdown("""
         gap: 10px;
     }
 
-    /* BARRA FLOTANTE INFERIOR (VER PEDIDO) */
-    .floating-bar {
-        position: fixed;
-        bottom: 20px;
-        left: 5%;
-        width: 90%;
-        background-color: #0f2d59;
+    /* CONVERSIÓN DEL BOTÓN DE STREAMLIT EN LA BARRA FLOTANTE AZUL DE EL YERRO MENU */
+    div.stButton > button[key^="btn_flotante"] {
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 5% !important;
+        width: 90% !important;
+        background-color: #0f2d59 !important;
         color: white !important;
-        text-align: center;
-        padding: 15px;
-        border-radius: 30px;
-        font-weight: bold;
-        font-size: 15px;
-        box-shadow: 0 10px 20px rgba(15, 45, 89, 0.3);
-        z-index: 999;
+        text-align: center !important;
+        padding: 15px !important;
+        border-radius: 30px !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+        box-shadow: 0 10px 20px rgba(15, 45, 89, 0.3) !important;
+        z-index: 999 !important;
+        border: none !important;
+        transition: transform 0.1s ease;
+    }
+    
+    div.stButton > button[key^="btn_flotante"]:active {
+        transform: scale(0.98) !important;
     }
     
     /* Botón principal de WhatsApp */
@@ -212,7 +217,7 @@ if not st.session_state.ver_carrito:
     with tab_pastas: render_grid("Pastas")
     with tab_otros: render_grid("Otros")
 
-    # --- BARRA FLOTANTE AZUL DE REVISIÓN ---
+    # --- BARRA FLOTANTE AZUL INTERACTIVA ---
     total_items = sum(encargo.values())
     total_dinero = sum(cant * productos[item]["precio"] for item, cant in encargo.items())
     
@@ -220,9 +225,8 @@ if not st.session_state.ver_carrito:
         st.session_state.pedido_actual = encargo
         st.session_state.total_dinero = total_dinero
         
-        st.markdown(f'<div class="floating-bar">VER PEDIDO &nbsp;&nbsp;•&nbsp;&nbsp; {total_items} Producto(s) &nbsp;&nbsp;•&nbsp;&nbsp; {total_dinero:.2f} CUP</div>', unsafe_allow_html=True)
-        
-        if st.button("Revisar Carrito y Confirmar ➔", use_container_width=True):
+        # AHORA LA BARRA AZUL FLOTANTE ES UN BOTÓN REAL: Al presionarla avanza directo a la confirmación
+        if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", key="btn_flotante", use_container_width=True):
             st.session_state.ver_carrito = True
             st.rerun()
 

@@ -1,6 +1,7 @@
 import streamlit as st
 
-st.set_page_config(page_title="Variedades Suárez", page_icon="🧺", layout="vertical")
+# CORREGIDO: Se cambia "vertical" por "centered" para que Streamlit no dé error
+st.set_page_config(page_title="Variedades Suárez", page_icon="🧺", layout="centered")
 
 # --- DISEÑO INSPIRADO EN EL YERRO MENU (INTERFAZ PREMIUM) ---
 st.markdown("""
@@ -173,12 +174,10 @@ if not st.session_state.ver_carrito:
             
         items = list(prods_filtrados.items())
         
-        # Validación para evitar errores si la categoría está vacía
         if len(items) == 0:
             st.caption("Próximamente agregaremos productos a esta categoría. ¡Mantente atento! 😉")
             return
 
-        # Generar las filas de dos en dos columnas de forma segura
         for i in range(0, len(items), 2):
             col1, col2 = st.columns(2)
             

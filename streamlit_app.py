@@ -92,15 +92,8 @@ st.markdown("""
         gap: 10px;
     }
 
-    /* TRUCO MAESTRO: BOTÓN FLOTANTE AZUL EXCLUSIVO DE LA PANTALLA DE CATÁLOGO */
-    /* Targeteamos específicamente el contenedor cuando NO está en modo carrito */
-    .stApp div[data-testid="stHeader"] + div div.stButton > button {
-        /* CSS base heredado */
-    }
-    
-    /* Forzar que el botón con la clave 'btn_flotante' flote fíjamente abajo */
-    iframe + div div.stButton > button[key="btn_flotante"], 
-    .stApp div.stButton > button {
+    /* TRUCO MAESTRO: ESTILO EXCLUSIVO PARA EL BOTÓN FLOTANTE DEL CATÁLOGO */
+    .boton-flotante-contenedor div.stButton > button {
         position: fixed !important;
         bottom: 25px !important;
         left: 5% !important;
@@ -118,33 +111,33 @@ st.markdown("""
         display: block !important;
     }
     
-    .stApp div.stButton > button:hover, .stApp div.stButton > button:active, .stApp div.stButton > button:focus {
+    .boton-flotante-contenedor div.stButton > button:hover, 
+    .boton-flotante-contenedor div.stButton > button:active, 
+    .boton-flotante-contenedor div.stButton > button:focus {
         background-color: #0f2d59 !important;
         color: white !important;
         border: none !important;
         box-shadow: 0 8px 25px rgba(15, 45, 89, 0.6) !important;
     }
     
-    /* MODIFICACIÓN: En la pantalla de datos/carrito, el botón de continuar o volver recupera el estilo normal sin flotar */
-    .carrito-container div.stButton > button, 
-    div.stForm div.stButton > button,
-    .stApp div.carrito-container div.stButton > button {
+    /* BOTONES NORMALES (Para que el botón de 'Volver' y 'Agregar Cupón' se queden quietos en su sitio) */
+    .boton-normal div.stButton > button {
         position: static !important;
-        width: auto !important;
-        background-color: transparent !important;
-        color: #0f2d59 !important;
-        border: 1px solid #edf2f7 !important;
-        box-shadow: none !important;
-        padding: 6px 12px !important;
+        width: 100% !important;
+        background-color: #ffffff !important;
+        color: #1a202c !important;
+        border: 1px solid #e2e8f0 !important;
         border-radius: 8px !important;
+        padding: 6px 12px !important;
+        box-shadow: none !important;
     }
 
     .espacio-final {
         height: 90px;
     }
     
-    /* Botón de confirmar pedido estilo El Yerro (Grande y vistoso al final de la pantalla 2) */
-    .carrito-container div.stLinkButton > a[href^="https://wa.me"] {
+    /* Botón de confirmar pedido final (Grande y azul) */
+    div.stLinkButton > a[href^="https://wa.me"] {
         background-color: #0f2d59 !important;
         color: white !important;
         font-weight: bold !important;
@@ -252,18 +245,20 @@ if not st.session_state.ver_carrito:
         st.session_state.pedido_actual = encargo
         st.session_state.total_dinero = total_dinero
         
-        # Al presionar el botón flotante se avanza a la siguiente vista
+        # EL TRUCO: Aislamos el botón flotante en su propio contenedor CSS y solo se renderiza AQUÍ
+        st.markdown('<div class="boton-flotante-contenedor">', unsafe_allow_html=True)
         if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", key="btn_flotante", use_container_width=True):
             st.session_state.ver_carrito = True
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO (MÓDULO WRAPPED EN CLASE .carrito-container) ---
+# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO ---
 else:
-    st.markdown('<div class="carrito-container">', unsafe_allow_html=True)
-    
+    st.markdown('<div class="boton-normal">', unsafe_allow_html=True)
     if st.button("⬅️ Volver al Catálogo"):
         st.session_state.ver_carrito = False
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
         
     st.markdown("## **Pedido**")
     
@@ -297,7 +292,9 @@ else:
     with col_cup:
         cupon = st.text_input("¿Tienes código promocional?", placeholder="Escribe tu código aquí", label_visibility="collapsed").strip()
     with col_btn:
+        st.markdown('<div class="boton-normal">', unsafe_allow_html=True)
         st.button("Agregar")
+        st.markdown('</div>', unsafe_allow_html=True)
         
     descuento = 0
     if cupon == "SUAREZ10":
@@ -316,7 +313,6 @@ else:
     notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, dejar con la vecina...")
     
     if nombre and direccion and ci:
-        # Texto limpio para el mensaje de WhatsApp con el cupón solicitado
         texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
         if notas:
             texto += f"📝 *Notas:* {notas}\n"
@@ -325,7 +321,6 @@ else:
         for item, cant in pedido.items():
             texto += f"- {cant}x {item} (${cant * productos[item]['precio']:.2f} CUP)\n"
             
-        # NUEVO: Se añade el nombre del cupón y el total descontado al mensaje
         if descuento > 0:
             texto += f"\n🎟️ *Cupón Aplicado:* {cupon} (-${descuento:.2f} CUP)\n"
             
@@ -339,8 +334,6 @@ else:
         st.link_button(f"CONTINUAR CON EL PEDIDO • {total_final:.2f} CUP", enlace_wa, use_container_width=True)
     else:
         st.caption("⚠️ Por favor completa tu Nombre, Dirección y CI para habilitar el botón de WhatsApp.")
-        
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- MÉTODOS DE PAGO Y CONTACTO ---
 st.write("---")

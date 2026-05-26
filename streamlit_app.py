@@ -80,7 +80,7 @@ st.markdown("""
         margin-bottom: 5px;
     }
 
-    /* Caja de Tipo de Servicio (Captura 2) */
+    /* Caja de Tipo de Servicio */
     .service-box {
         background-color: #ffffff;
         border: 2px solid #0f2d59;
@@ -109,7 +109,7 @@ st.markdown("""
         z-index: 999;
     }
     
-    /* Botón principal de WhatsApp estilo elyerromenu */
+    /* Botón principal de WhatsApp */
     div.stLinkButton > a[href^="https://wa.me"] {
         background-color: #0f2d59 !important;
         color: white !important;
@@ -138,11 +138,11 @@ except:
 
 st.info("🚚 **Información de Entrega:** Llevamos tu encargo directo hasta la puerta de tu casa en el pueblo de forma rápida y segura.")
 
-# Control de pantallas (Falso = Catálogo, Verdadero = Carrito)
+# Control de pantallas
 if 'ver_carrito' not in st.session_state:
     st.session_state.ver_carrito = False
 
-# --- TU LISTA DE PRODUCTOS REALES Y PRECIOS ---
+# --- TU LISTA DE PRODUCTOS ---
 productos = {
     "Arroz (Lb)": {"precio": 120, "foto": "Arroz.jpg", "detalle": "Arroz blanco de grano entero de primera calidad.", "categoria": "Granos"},
     "Aceite de Cocina (1L)": {"precio": 850, "foto": "Aceite.jpg", "detalle": "Aceite vegetal ideal para freír y cocinar.", "categoria": "Otros"},
@@ -173,7 +173,12 @@ if not st.session_state.ver_carrito:
             
         items = list(prods_filtrados.items())
         
-        # Generar las filas de dos en dos columnas
+        # Validación para evitar errores si la categoría está vacía
+        if len(items) == 0:
+            st.caption("Próximamente agregaremos productos a esta categoría. ¡Mantente atento! 😉")
+            return
+
+        # Generar las filas de dos en dos columnas de forma segura
         for i in range(0, len(items), 2):
             col1, col2 = st.columns(2)
             
@@ -185,7 +190,7 @@ if not st.session_state.ver_carrito:
                 except: st.caption("📸 (Sin foto)")
                 st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                 st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
-                cant = st.number_input("Cantidad", min_value=0, max_value=100, value=0, step=1, key=f"cat_{prod}")
+                cant = st.number_input("Cantidad", min_value=0, max_value=100, value=0, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}")
                 if cant > 0: encargo[prod] = cant
                 st.markdown('</div>', unsafe_allow_html=True)
             
@@ -198,7 +203,7 @@ if not st.session_state.ver_carrito:
                     except: st.caption("📸 (Sin foto)")
                     st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                     st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
-                    cant = st.number_input("Cantidad", min_value=0, max_value=100, value=0, step=1, key=f"cat_{prod}")
+                    cant = st.number_input("Cantidad", min_value=0, max_value=100, value=0, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}")
                     if cant > 0: encargo[prod] = cant
                     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -216,10 +221,8 @@ if not st.session_state.ver_carrito:
         st.session_state.pedido_actual = encargo
         st.session_state.total_dinero = total_dinero
         
-        # Texto de la barra flotante idéntico al de la captura
         st.markdown(f'<div class="floating-bar">VER PEDIDO &nbsp;&nbsp;•&nbsp;&nbsp; {total_items} Producto(s) &nbsp;&nbsp;•&nbsp;&nbsp; {total_dinero:.2f} CUP</div>', unsafe_allow_html=True)
         
-        # Botón para activar el salto de pantalla
         if st.button("Revisar Carrito y Confirmar ➔", use_container_width=True):
             st.session_state.ver_carrito = True
             st.rerun()
@@ -232,7 +235,6 @@ else:
         
     st.markdown("## **Pedido**")
     
-    # Caja de servicio de entrega
     st.markdown("""
         <div class="service-box">
             <span style="font-size:22px;">📦</span>
@@ -258,7 +260,6 @@ else:
             st.markdown(f"<span style='color:#0f2d59; font-weight:bold;'>{productos[item]['precio']:.2f} CUP</span> x {cant}", unsafe_allow_html=True)
         st.divider()
         
-    # Sección de Cupones
     st.write("### Cupones")
     col_cup, col_btn = st.columns([3, 1])
     with col_cup:
@@ -275,7 +276,6 @@ else:
     st.markdown(f"### **Total Neto a Pagar: {total_final:.2f} CUP**")
     st.write("---")
     
-    # Formulario final para recolectar datos
     st.write("### 📝 Información de Entrega")
     nombre = st.text_input("Nombre y Apellidos:")
     direccion = st.text_input("Dirección de entrega:")
@@ -284,7 +284,6 @@ else:
     notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde, dejar con la vecina...")
     
     if nombre and direccion and ci:
-        # Texto limpio para tu WhatsApp
         texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
         if notas:
             texto += f"📝 *Notas:* {notas}\n"
@@ -298,7 +297,6 @@ else:
         enlace_wa = f"https://wa.me/{mi_numero}?text={texto_url}"
         
         st.write("---")
-        # Botón de confirmación estilo barra azul de El Yerro Menú
         st.link_button(f"CONTINUAR CON EL PEDIDO • {total_final:.2f} CUP", enlace_wa, use_container_width=True)
     else:
         st.caption("⚠️ Por favor completa tu Nombre, Dirección y CI para habilitar el botón de WhatsApp.")

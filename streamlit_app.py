@@ -136,13 +136,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Inicializar estados de la sesión
+# --- INICIALIZACIÓN DE VARIABLES GLOBALES DE SESIÓN ---
 if 'ver_carrito' not in st.session_state:
     st.session_state.ver_carrito = False
-if 'pedido_actual' not in st.session_state:
-    st.session_state.pedido_actual = {}
-if 'total_dinero' not in st.session_state:
-    st.session_state.total_dinero = 0.0
+if 'pedido_persistente' not in st.session_state:
+    st.session_state.pedido_persistente = {}
 
 # --- TU LISTA DE PRODUCTOS ---
 productos = {
@@ -153,27 +151,20 @@ productos = {
     "Pan(Unidades)": {"precio": 50, "foto": "Pan.jpg", "categoria": "Otros"}
 }
 
-# Diccionario temporal para capturar la selección actual en tiempo real
-encargo = {}
+# --- FUNCIÓN DE CONTROL: Sincroniza lo elegido en los inputs con la memoria persistente ---
+def actualizar_carrito(prod_id, cat_filtro):
+    key_input = f"cat_{prod_id}_{cat_filtro}"
+    nueva_cantidad = st.session_state.get(key_input, 0)
+    
+    if nueva_cantidad > 0:
+        st.session_state.pedido_persistente[prod_id] = nueva_cantidad
+    else:
+        if prod_id in st.session_state.pedido_persistente:
+            del st.session_state.pedido_persistente[prod_id]
 
-# --- RECOLECCIÓN PREVIA DE CANTIDADES (Para actualizar el botón superior dinámicamente) ---
-# Clonamos el estado para no romper los inputs del catálogo mientras se renderizan
-for prod in productos:
-    for cat_key in ["todo", "Granos", "Bebidas", "Pastas", "Otros"]:
-        key_name = f"cat_{prod}_{cat_key}"
-        if key_name in st.session_state and st.session_state[key_name] > 0:
-            encargo[prod] = st.session_state[key_name]
-
-total_items = sum(encargo.values())
-total_dinero = sum(cant * productos[item]["precio"] for item, cant in encargo.items())
-
-if total_items > 0:
-    st.session_state.pedido_actual = encargo
-    st.session_state.total_dinero = total_dinero
-else:
-    st.session_state.pedido_actual = {}
-    st.session_state.total_dinero = 0.0
-
+# Calcular totales leyendo la memoria segura
+total_items = sum(st.session_state.pedido_persistente.values())
+total_dinero = sum(cant * productos[item]["precio"] for item, cant in st.session_state.pedido_persistente.items())
 
 # --- CABECERA SUPERIOR DINÁMICA ---
 col_titulo, col_carrito = st.columns([3, 1.2])
@@ -187,7 +178,6 @@ with col_titulo:
         """, unsafe_allow_html=True)
 
 with col_carrito:
-    # Solo mostramos el acceso al carrito si estamos en la vista de catálogo
     if not st.session_state.ver_carrito:
         cart_style = "cart-active" if total_items > 0 else "cart-empty"
         st.markdown(f'<div class="cart-btn-container {cart_style}" style="margin-top: 15px; text-align: right;">', unsafe_allow_html=True)
@@ -239,7 +229,12 @@ if not st.session_state.ver_carrito:
                 except: st.caption("📸 (Sin foto)")
                 st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                 st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
-                st.number_input("Cantidad", min_value=0, max_value=100, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}", on_change=lambda: setattr(st.session_state, 'rerun_flag', True))
+                
+                # Cargar el valor que ya estaba guardado previamente si existe
+                val_inicial = st.session_state.pedido_persistente.get(prod, 0)
+                st.number_input("Cantidad", min_value=0, max_value=100, value=val_inicial, step=1, 
+                                key=f"cat_{prod}_{categoria_filtro or 'todo'}", 
+                                on_change=actualizar_carrito, args=(prod, categoria_filtro or 'todo'))
                 st.markdown('</div>', unsafe_allow_html=True)
             
             with col2:
@@ -250,7 +245,11 @@ if not st.session_state.ver_carrito:
                     except: st.caption("📸 (Sin foto)")
                     st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                     st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
-                    st.number_input("Cantidad", min_value=0, max_value=100, step=1, key=f"cat_{prod}_{categoria_filtro or 'todo'}", on_change=lambda: setattr(st.session_state, 'rerun_flag', True))
+                    
+                    val_inicial_2 = st.session_state.pedido_persistente.get(prod, 0)
+                    st.number_input("Cantidad", min_value=0, max_value=100, value=val_inicial_2, step=1, 
+                                    key=f"cat_{prod}_{categoria_filtro or 'todo'}", 
+                                    on_change=actualizar_carrito, args=(prod, categoria_filtro or 'todo'))
                     st.markdown('</div>', unsafe_allow_html=True)
 
     with tab_todo: render_grid(None)
@@ -259,12 +258,7 @@ if not st.session_state.ver_carrito:
     with tab_pastas: render_grid("Pastas")
     with tab_otros: render_grid("Otros")
 
-    # Si hubo cambios en los selectores de cantidad, forzar recarga sutil para actualizar el contador superior
-    if st.session_state.get('rerun_flag', False):
-        st.session_state.rerun_flag = False
-        st.rerun()
-
-# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO ---
+# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO (MÓDULO TOTALMENTE ARREGLADO) ---
 else:
     st.markdown('<div class="boton-normal">', unsafe_allow_html=True)
     if st.button("⬅️ Volver al Catálogo"):
@@ -284,18 +278,21 @@ else:
         </div>
         """, unsafe_allow_html=True)
         
-    pedido = st.session_state.get('pedido_actual', {})
-    total_final = st.session_state.get('total_dinero', 0.0)
+    pedido_seguro = st.session_state.pedido_persistente
+    total_final = total_dinero
     
     st.write("### Productos solicitados")
-    for item, cant in pedido.items():
+    
+    # Renderizar la lista leyendo la sesión guardada
+    for item, cant in pedido_seguro.items():
+        subtotal_item = cant * productos[item]["precio"]
         col_img, col_txt = st.columns([1, 3])
         with col_img:
             try: st.image(productos[item]["foto"], width=65)
             except: pass
         with col_txt:
             st.markdown(f"**{item}**")
-            st.markdown(f"<span style='color:#0f2d59; font-weight:bold;'>{productos[item]['precio']:.2f} CUP</span> x {cant}", unsafe_allow_html=True)
+            st.markdown(f"<span style='color:#0f2d59; font-weight:bold;'>{productos[item]['precio']:.2f} CUP</span> x {cant} = **{subtotal_item:.2f} CUP**", unsafe_allow_html=True)
         st.divider()
         
     st.write("### Cupones")
@@ -313,6 +310,11 @@ else:
         st.success(f"🎉 ¡Cupón SUAREZ10 aplicado! Descuento: -${descuento:.2f} CUP")
         total_final -= descuento
 
+    # Mostrar de forma clara los montos en pantalla
+    if descuento > 0:
+        st.markdown(f"**Subtotal:** {total_dinero:.2f} CUP")
+        st.markdown(f"<span style='color:green;'>**Descuento (SUAREZ10):** -{descuento:.2f} CUP</span>", unsafe_allow_html=True)
+    
     st.markdown(f"### **Total Neto a Pagar: {total_final:.2f} CUP**")
     st.write("---")
     
@@ -321,15 +323,16 @@ else:
     direccion = st.text_input("Dirección de entrega:")
     ci = st.text_input("Carnet de Identidad (CI):")
     horario = st.selectbox("🕒 Horario de entrega preferido", ["Por la Mañana (9:00 AM - 12:00 PM)", "Por la Tarde (2:00 PM - 6:00 PM)"])
-    notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Fachada verde...")
+    notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Casa de rejas blancas...")
     
     if nombre and direccion and ci:
+        # CONSTRUCCIÓN DEL CÓDIGO DE WHATSAPP INTEGRAL
         texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
         if notas:
             texto += f"📝 *Notas:* {notas}\n"
         
         texto += "\n📦 *Productos:* \n"
-        for item, cant in pedido.items():
+        for item, cant in pedido_seguro.items():
             texto += f"- {cant}x {item} (${cant * productos[item]['precio']:.2f} CUP)\n"
             
         if descuento > 0:

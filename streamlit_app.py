@@ -1,5 +1,6 @@
 import streamlit as st
 
+# ¡FIX PRINCIPAL!: st.set_page_config SIEMPRE debe ir primero que cualquier st.markdown
 st.set_page_config(page_title="Variedades Suárez", page_icon="🧺", layout="centered")
 
 # --- DISEÑO INSPIRADO EN EL YERRO MENU (INTERFAZ PREMIUM) ---
@@ -92,7 +93,7 @@ st.markdown("""
         gap: 10px;
     }
 
-    /* TRUCO MAESTRO: ESTILO EXCLUSIVO PARA EL BOTÓN FLOTANTE DEL CATÁLOGO */
+    /* TRUCO MAESTRO: ESTILO INYECTADO PARA QUE EL BOTÓN FLOTE REALMENTE ABAJO */
     .boton-flotante-contenedor div.stButton > button {
         position: fixed !important;
         bottom: 25px !important;
@@ -120,7 +121,7 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(15, 45, 89, 0.6) !important;
     }
     
-    /* BOTONES NORMALES (Para que el botón de 'Volver' y 'Agregar Cupón' se queden quietos en su sitio) */
+    /* BOTONES ESTÁNDAR (Volver y Agregar Cupón se quedan quietos en su celda) */
     .boton-normal div.stButton > button {
         position: static !important;
         width: 100% !important;
@@ -133,10 +134,10 @@ st.markdown("""
     }
 
     .espacio-final {
-        height: 90px;
+        height: 95px;
     }
     
-    /* Botón de confirmar pedido final (Grande y azul) */
+    /* Botón de confirmar pedido final (Llamativo de WhatsApp) */
     div.stLinkButton > a[href^="https://wa.me"] {
         background-color: #0f2d59 !important;
         color: white !important;
@@ -245,7 +246,7 @@ if not st.session_state.ver_carrito:
         st.session_state.pedido_actual = encargo
         st.session_state.total_dinero = total_dinero
         
-        # EL TRUCO: Aislamos el botón flotante en su propio contenedor CSS y solo se renderiza AQUÍ
+        # LOGICA PERFECTA: Al estar condicionado aquí adentro, el botón deja de existir físicamente en la pantalla 2
         st.markdown('<div class="boton-flotante-contenedor">', unsafe_allow_html=True)
         if st.button(f"🛒 VER PEDIDO  •  {total_items} Producto(s)  •  {total_dinero:.2f} CUP ➔", key="btn_flotante", use_container_width=True):
             st.session_state.ver_carrito = True

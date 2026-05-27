@@ -389,4 +389,35 @@ else:
     notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Casa de rejas blancas...")
     
     if nombre and direccion and ci:
-        texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒
+        texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
+        if notas:
+            texto += f"📝 *Notas:* {notas}\n"
+        
+        texto += "\n📦 *Productos:* \n"
+        for item, cant in pedido_seguro.items():
+            texto += f"- {cant}x {item} (${cant * productos[item]['precio']:.2f} CUP)\n"
+            
+        if descuento > 0:
+            texto += f"\n🎟️ *Cupón Aplicado:* {cupon} (-${descuento:.2f} CUP)\n"
+            
+        texto += f"\n*Total neto a pagar: {total_final:.2f} CUP*"
+        
+        mi_numero = "5351233908"
+        texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
+        enlace_wa = f"https://wa.me/{mi_numero}?text={texto_url}"
+        
+        st.write("---")
+        st.link_button(f"CONTINUAR CON EL PEDIDO • {total_final:.2f} CUP", enlace_wa, use_container_width=True)
+    else:
+        st.caption("⚠️ Por favor completa tu Nombre, Dirección y CI para habilitar el botón de WhatsApp.")
+
+# --- MÉTODOS DE PAGO Y CONTACTO ---
+st.write("---")
+st.success("💰 **Método de pago:** Únicamente pago en efectivo al recibir los productos en casa.")
+
+st.write("### 📞 ¿Necesitas ayuda?")
+col_tel, col_chat = st.columns(2)
+with col_tel:
+    st.link_button("📞 Llamar por Teléfono", "tel:+5351233908", use_container_width=True)
+with col_chat:
+    st.link_button("💬 Chat de WhatsApp", "https://wa.me/5351233908", use_container_width=True)

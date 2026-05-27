@@ -35,6 +35,44 @@ st.markdown("""
         margin-bottom: 0px;
     }
 
+    /* SECCIÓN DE PUBLICIDAD Y PROMOCIONES */
+    .promo-section-title {
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        color: #0f2d59 !important;
+        margin-top: 10px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .promo-box {
+        background: linear-gradient(135deg, #0f2d59 0%, #1a4a86 100%);
+        border-radius: 12px;
+        padding: 12px;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(15, 45, 89, 0.15);
+        margin-bottom: 10px;
+        text-align: center;
+        min-height: 105px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .promo-box p, .promo-box span, .promo-box strong {
+        color: #ffffff !important;
+    }
+    .promo-badge {
+        background-color: #e53e3e;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        width: fit-content;
+        margin: 0 auto 5px auto;
+    }
+
     /* Pestañas de categorías estilo elyerromenu */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
@@ -151,7 +189,7 @@ productos = {
     "Pan(Unidades)": {"precio": 50, "foto": "Pan.jpg", "categoria": "Otros"}
 }
 
-# --- FUNCIÓN DE CONTROL: Sincroniza lo elegido en los inputs con la memoria persistente ---
+# --- FUNCIÓN DE CONTROL ---
 def actualizar_carrito(prod_id, cat_filtro):
     key_input = f"cat_{prod_id}_{cat_filtro}"
     nueva_cantidad = st.session_state.get(key_input, 0)
@@ -162,7 +200,7 @@ def actualizar_carrito(prod_id, cat_filtro):
         if prod_id in st.session_state.pedido_persistente:
             del st.session_state.pedido_persistente[prod_id]
 
-# Calcular totales leyendo la memoria segura
+# Calcular totales
 total_items = sum(st.session_state.pedido_persistente.values())
 total_dinero = sum(cant * productos[item]["precio"] for item, cant in st.session_state.pedido_persistente.items())
 
@@ -199,6 +237,34 @@ except:
 if not st.session_state.ver_carrito:
     st.info(" Haz tu encargo de productos y yo se lo llevo directo hasta la puerta de su casa.")
     
+    # =========================================================================
+    # NUEVA SECCIÓN: NOVEDADES, PUBLICIDAD Y PRODUCTOS MÁS VENDIDOS
+    # =========================================================================
+    st.markdown('<p class="promo-section-title">🔥 Destacados y Promociones</p>', unsafe_allow_html=True)
+    
+    col_promo1, col_promo2 = st.columns(2)
+    
+    with col_promo1:
+        st.markdown("""
+            <div class="promo-box">
+                <div class="promo-badge">Descuento</div>
+                <strong style="font-size: 13px;">10% MENOS</strong>
+                <p style="font-size: 11px; margin: 2px 0 0 0;">Usa el cupón <span style="background-color:#fff; color:#0f2d59; padding:1px 4px; border-radius:4px; font-weight:bold;">SUAREZ10</span> al revisar tu pedido.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+    with col_promo2:
+        st.markdown("""
+            <div class="promo-box" style="background: linear-gradient(135deg, #1d6132 0%, #113b1e 100%); text-align: center;">
+                <div class="promo-badge" style="background-color:#d69e2e;">⭐ Más Vendido</div>
+                <strong style="font-size: 13px;">🌾 Arroz Blanco</strong>
+                <p style="font-size: 11px; margin: 2px 0 0 0;">El grano preferido del pueblo. ¡Calidad premium garantizada!</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+    st.write("") # Pequeño espacio separador
+    # =========================================================================
+    
     buscar = st.text_input("🔍 Buscar producto...", value="")
     
     tab_todo, tab_granos, tab_bebidas, tab_pastas, tab_otros = st.tabs([
@@ -230,7 +296,6 @@ if not st.session_state.ver_carrito:
                 st.markdown(f'<p class="product-title">{prod}</p>', unsafe_allow_html=True)
                 st.markdown(f'<p class="product-price">{info["precio"]:.2f} CUP</p>', unsafe_allow_html=True)
                 
-                # Cargar el valor que ya estaba guardado previamente si existe
                 val_inicial = st.session_state.pedido_persistente.get(prod, 0)
                 st.number_input("Cantidad", min_value=0, max_value=100, value=val_inicial, step=1, 
                                 key=f"cat_{prod}_{categoria_filtro or 'todo'}", 
@@ -258,7 +323,7 @@ if not st.session_state.ver_carrito:
     with tab_pastas: render_grid("Pastas")
     with tab_otros: render_grid("Otros")
 
-# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO (MÓDULO TOTALMENTE ARREGLADO) ---
+# --- PANTALLA 2: EL CARRITO Y DATOS DE ENVÍO ---
 else:
     st.markdown('<div class="boton-normal">', unsafe_allow_html=True)
     if st.button("⬅️ Volver al Catálogo"):
@@ -283,7 +348,6 @@ else:
     
     st.write("### Productos solicitados")
     
-    # Renderizar la lista leyendo la sesión guardada
     for item, cant in pedido_seguro.items():
         subtotal_item = cant * productos[item]["precio"]
         col_img, col_txt = st.columns([1, 3])
@@ -310,7 +374,6 @@ else:
         st.success(f"🎉 ¡Cupón SUAREZ10 aplicado! Descuento: -${descuento:.2f} CUP")
         total_final -= descuento
 
-    # Mostrar de forma clara los montos en pantalla
     if descuento > 0:
         st.markdown(f"**Subtotal:** {total_dinero:.2f} CUP")
         st.markdown(f"<span style='color:green;'>**Descuento (SUAREZ10):** -{descuento:.2f} CUP</span>", unsafe_allow_html=True)
@@ -326,36 +389,4 @@ else:
     notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Casa de rejas blancas...")
     
     if nombre and direccion and ci:
-        # CONSTRUCCIÓN DEL CÓDIGO DE WHATSAPP INTEGRAL
-        texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
-        if notas:
-            texto += f"📝 *Notas:* {notas}\n"
-        
-        texto += "\n📦 *Productos:* \n"
-        for item, cant in pedido_seguro.items():
-            texto += f"- {cant}x {item} (${cant * productos[item]['precio']:.2f} CUP)\n"
-            
-        if descuento > 0:
-            texto += f"\n🎟️ *Cupón Aplicado:* {cupon} (-${descuento:.2f} CUP)\n"
-            
-        texto += f"\n*Total neto a pagar: {total_final:.2f} CUP*"
-        
-        mi_numero = "5351233908"
-        texto_url = texto.replace(" ", "%20").replace("\n", "%0A")
-        enlace_wa = f"https://wa.me/{mi_numero}?text={texto_url}"
-        
-        st.write("---")
-        st.link_button(f"CONTINUAR CON EL PEDIDO • {total_final:.2f} CUP", enlace_wa, use_container_width=True)
-    else:
-        st.caption("⚠️ Por favor completa tu Nombre, Dirección y CI para habilitar el botón de WhatsApp.")
-
-# --- MÉTODOS DE PAGO Y CONTACTO ---
-st.write("---")
-st.success("💰 **Método de pago:** Únicamente pago en efectivo al recibir los productos en casa.")
-
-st.write("### 📞 ¿Necesitas ayuda?")
-col_tel, col_chat = st.columns(2)
-with col_tel:
-    st.link_button("📞 Llamar por Teléfono", "tel:+5351233908", use_container_width=True)
-with col_chat:
-    st.link_button("💬 Chat de WhatsApp", "https://wa.me/5351233908", use_container_width=True)
+        texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒

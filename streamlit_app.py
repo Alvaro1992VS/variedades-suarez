@@ -119,19 +119,32 @@ st.markdown("""
         font-weight: 700 !important;
     }
 
-    /* Caja de Tipo de Servicio */
-    .service-box {
-        background-color: #ffffff;
-        border: 2px solid #0f2d59;
-        border-radius: 10px;
-        padding: 15px;
+    /* Caja informativa de Dirección del Local */
+    .local-direction-box {
+        background-color: #ebf8ff;
+        border-left: 4px solid #3182ce;
+        border-radius: 4px;
+        padding: 12px;
+        margin-top: 10px;
         margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    }
+    .local-direction-text {
+        font-size: 14px !important;
+        color: #2b6cb0 !important;
+        font-weight: 600 !important;
+        line-height: 1.4;
+    }
+
+    /* Botón estándar para cupones y volver */
+    .boton-normal div.stButton > button {
+        background-color: #ffffff !important;
+        color: #1a202c !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
     }
     
-    /* BOTÓN DEL CARRITO SUPERIOR DERECHA */
+    /* Botón DEL CARRITO SUPERIOR DERECHA */
     .cart-btn-container div.stButton > button {
         background-color: #ffffff !important;
         color: #0f2d59 !important;
@@ -142,21 +155,10 @@ st.markdown("""
         font-size: 14px !important;
         transition: all 0.3s ease;
     }
-    
-    /* Variación cuando el carrito tiene productos activos */
     .cart-active div.stButton > button {
         background-color: #0f2d59 !important;
         color: #ffffff !important;
         box-shadow: 0 4px 10px rgba(15, 45, 89, 0.3) !important;
-    }
-
-    /* Botón estándar para cupones y volver */
-    .boton-normal div.stButton > button {
-        background-color: #ffffff !important;
-        color: #1a202c !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 8px !important;
-        padding: 6px 12px !important;
     }
     
     /* Botón final de WhatsApp */
@@ -237,11 +239,8 @@ except:
 if not st.session_state.ver_carrito:
     st.info(" Haz tu encargo de productos y yo se lo llevo directo hasta la puerta de su casa.")
     
-    # =========================================================================
-    # NUEVA SECCIÓN: NOVEDADES, PUBLICIDAD Y PRODUCTOS MÁS VENDIDOS
-    # =========================================================================
+    # SECCIÓN: DEstacados y Promociones
     st.markdown('<p class="promo-section-title">🔥 Destacados y Promociones</p>', unsafe_allow_html=True)
-    
     col_promo1, col_promo2 = st.columns(2)
     
     with col_promo1:
@@ -262,8 +261,7 @@ if not st.session_state.ver_carrito:
             </div>
             """, unsafe_allow_html=True)
             
-    st.write("") # Pequeño espacio separador
-    # =========================================================================
+    st.write("")
     
     buscar = st.text_input("🔍 Buscar producto...", value="")
     
@@ -333,21 +331,32 @@ else:
         
     st.markdown("## **Pedido**")
     
-    st.markdown("""
-        <div class="service-box">
-            <span style="font-size:22px;">📦</span>
-            <div>
-                <strong style="color:#0f2d59 !important; font-size:16px;">Tipo de Servicio</strong><br>
-                <span style="font-size:14px; color:#4a5568;">Pedido con entrega directa a domicilio</span>
+    # =========================================================================
+    # NUEVO: SELECCIÓN DE TIPO DE SERVICIO (DOMICILIO O LOCAL)
+    # =========================================================================
+    tipo_servicio = st.radio(
+        "📦 **Selecciona el Método de Entrega:**",
+        ["🚚 Entrega a domicilio", "🏪 Recoger en el local"],
+        index=0
+    )
+    
+    # Lógica condicional: Si es en el local, muestra la dirección solicitada
+    if tipo_servicio == "🏪 Recoger en el local":
+        st.markdown("""
+            <div class="local-direction-box">
+                <span style="font-size:16px; font-weight:bold; color:#2b6cb0;">📍 Dirección del Local:</span><br>
+                <p class="local-direction-text">Facultad №1 De Medicina Por Calle E de Sueño</p>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+    else:
+        st.caption("✨ Llevaremos tu pedido directo hasta la puerta de tu casa.")
+    st.write("---")
+    # =========================================================================
         
     pedido_seguro = st.session_state.pedido_persistente
     total_final = total_dinero
     
     st.write("### Productos solicitados")
-    
     for item, cant in pedido_seguro.items():
         subtotal_item = cant * productos[item]["precio"]
         col_img, col_txt = st.columns([1, 3])
@@ -383,13 +392,22 @@ else:
     
     st.write("### 📝 Información de Entrega")
     nombre = st.text_input("Nombre y Apellidos:")
-    direccion = st.text_input("Dirección de entrega:")
-    ci = st.text_input("Carnet de Identidad (CI):")
-    horario = st.selectbox("🕒 Horario de entrega preferido", ["Por la Mañana (9:00 AM - 12:00 PM)", "Por la Tarde (2:00 PM - 6:00 PM)"])
-    notas = st.text_area("📝 Notas adicionales para el reparto (Opcional):", placeholder="Ej: Casa de rejas blancas...")
     
+    # Si selecciona recoger en el local, el campo de dirección cambia automáticamente
+    if tipo_servicio == "🏪 Recoger en el local":
+        direccion = "Retira en el local (Facultad №1 De Medicina Por Calle E de Sueño)"
+        st.text_input("Dirección de entrega:", value=direccion, disabled=True, help="Has seleccionado recoger en el local.")
+    else:
+        direccion = st.text_input("Dirección de entrega:", placeholder="Escribe tu dirección exacta del pueblo...")
+        
+    ci = st.text_input("Carnet de Identidad (CI):")
+    horario = st.selectbox("🕒 Horario preferido", ["Por la Mañana (9:00 AM - 12:00 PM)", "Por la Tarde (2:00 PM - 6:00 PM)"])
+    notas = st.text_area("📝 Notas adicionales (Opcional):", placeholder="Ej: Dejar el paquete listo, voy en moto...")
+    
+    # Validación para activar el botón final
     if nombre and direccion and ci:
-        texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📍 *Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
+        # CONSTRUCCIÓN DEL MENSAJE DINÁMICO DE WHATSAPP
+        texto = f"¡Hola Variedades Suárez! Quiero hacer un encargo:\n\n👤 *Cliente:* {nombre}\n📦 *Método:* {tipo_servicio}\n📍 *Lugar/Dirección:* {direccion}\n🪪 *CI:* {ci}\n🕒 *Horario:* {horario}\n"
         if notas:
             texto += f"📝 *Notas:* {notas}\n"
         
@@ -413,7 +431,7 @@ else:
 
 # --- MÉTODOS DE PAGO Y CONTACTO ---
 st.write("---")
-st.success("💰 **Método de pago:** Únicamente pago en efectivo al recibir los productos en casa.")
+st.success("💰 **Método de pago:** Únicamente pago en efectivo al recibir/recoger los productos.")
 
 st.write("### 📞 ¿Necesitas ayuda?")
 col_tel, col_chat = st.columns(2)
